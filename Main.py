@@ -15,8 +15,6 @@ HEIGHT = 1080
 Open = True
 
 
-
-
 # some code to shuffle a deck of cards
 def shuffle(deck):
     newDeck = []
@@ -33,11 +31,11 @@ def Draw():
 
 # is called whenever the screen is resized
 def reSize():
-    width = event.w
-    height = event.h
-    scaleWidth = width / WIDTH
-    scaleHeight = height / HEIGHT
-    screen = pygame.display.set_mode((width, height), RESIZABLE, VIDEORESIZE)
+	width = event.w
+	height = event.h
+	scaleWidth = width / WIDTH
+	scaleHeight = height / HEIGHT
+	screen = pygame.display.set_mode((width, height), RESIZABLE, VIDEORESIZE)
 
 
 reSize()
