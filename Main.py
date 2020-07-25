@@ -2,6 +2,7 @@ from random import randint
 import pygame
 from pygame.locals import *
 from Classes import *
+from Cards import *
 from copy import deepcopy
 import time
 globalCounter = 0
@@ -9,21 +10,48 @@ globalCounter = 0
 pygame.init()
 # sets up pygame's clock system
 clock = pygame.time.Clock()
+# basic colours
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+PURPLE = (255, 0, 255)
+TURQUOISE = (0, 255, 255)
+YELLOW = (0, 255, 255)
+ORANGE = (255, 128, 0)
 # sets up the windowed screen and allowing things to resize when window size changed
 screen = pygame.display.set_mode((1920, 1080), RESIZABLE, VIDEORESIZE)
 WIDTH = 1920
 HEIGHT = 1080
+cardWIDTH = 100
+cardHEIGHT = 150
 width, height = pygame.display.get_surface().get_size()
 scaleWidth = width / WIDTH
 scaleHeight = height / HEIGHT
 Open = True
+deck = []
+maxIchor = 4
+
+# all the blank templates for moving cards, the board
+
+blankCard = {'card': False, 'playable': False, 'attacked': False}
+
 blankBoard = [
-             [0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0]
+              [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
+              [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
+              [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
+              [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
+              [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)]
              ]
+
+blankMove = [
+             [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+             [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+             [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+             [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+             [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]
+            ]
 
 board = deepcopy(blankBoard)
 
@@ -41,23 +69,24 @@ def shuffle(deck):
 # code to allow two arrays to be entered with one being the board and the other where each card moves on a co-ordinate system and moves each one and allows them to loop
 def move(board, spot):
     counter1 = 0
+    newBoard = deepcopy(blankBoard)
     for row in board:
         counter2 = 0
-        for Card in row:
-            if Card != 0:
+        for card in row:
+            if not card['card']:
                 thisSpot = spot[counter1][counter2]
-                board[counter1+thisSpot[1] % len(board)][counter2+thisSpot[0] % len(board)] = board[counter1][counter2]
+                newBoard[(counter1+thisSpot[0]) % len(board)][(counter2+thisSpot[1]) % len(board)] = board[counter1][counter2]
             counter2 += 1
         counter1 += 1
-    return board
+    return newBoard
 
 
 # will draw all things on the screen
 def Draw():
     for row in board:
-        for Card in row:
-            if Card != 0:
-                Card.draw(screen)
+        for card in row:
+            if not card['card']:
+                card['card'].draw(screen)
     pygame.display.update()
 
 
@@ -70,6 +99,12 @@ def reSize(event):
     screen = pygame.display.set_mode((width, height), RESIZABLE, VIDEORESIZE)
     return width, height, scaleWidth, scaleHeight, screen
 
+
+def nextTurn():
+    pass
+
+
+ichorLeft = maxIchor
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
