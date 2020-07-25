@@ -6,6 +6,7 @@ from Cards import *
 from copy import deepcopy
 import time
 globalCounter = 0
+turn = 0
 # sets up pygame
 pygame.init()
 # sets up pygame's clock system
@@ -32,10 +33,13 @@ scaleHeight = height / HEIGHT
 Open = True
 deck = []
 maxIchor = 4
+currentEnemy = 0
+ichorLeft = maxIchor
+hp = 100
 
 # all the blank templates for moving cards, the board
 
-blankCard = {'card': False, 'playable': False, 'attacked': False}
+blankCard = {'card': False, 'playable': False, 'attacked': 0, 'effects': {'spores': 0, 'block': 0}}
 
 blankBoard = [
               [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
@@ -100,14 +104,21 @@ def reSize(event):
     return width, height, scaleWidth, scaleHeight, screen
 
 
-def nextTurn():
-    pass
+def nextTurn(currentEnemy):
+    global turn, ichorLeft, hp
+    turn += 1
+    for row in board:
+        for card in row:
+            hp -= card['attacked']
+    currentEnemy.turn()
+    ichorLeft = maxIchor
 
 
-ichorLeft = maxIchor
+nextTurn(currentEnemy)
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
+    globalCounter += 1
     # gets the location of the mouse and whether the mouse has been pressed
     pressed = pygame.mouse.get_pressed()
     location = pygame.mouse.get_cursor()

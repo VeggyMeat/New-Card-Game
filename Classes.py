@@ -3,8 +3,6 @@ from random import randint
 pygame.init()
 cardWIDTH = 100
 cardHEIGHT = 150
-enemyX = 0
-enemyY = 0
 
 
 class Card:
@@ -42,18 +40,18 @@ class Card:
 
     def resize(self, scaleWidth, scaleHeight):
         # resizes the image and location of image
-        self.resizedX = int(self.screenX * scaleWidth)
-        self.resizedY = int(self.screenY * scaleHeight)
-        self.resizedImageSize = (int(cardWIDTH * scaleWidth), int(cardHEIGHT * scaleHeight))
-        self.resizedImage = pygame.transform.scale(self.image, self.resizedImage)
+        self.resizedX = int(self.screenX * scaleWidth) + 1
+        self.resizedY = int(self.screenY * scaleHeight) + 1
+        self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
+        self.resizedImage = pygame.transform.scale(self.image, self.resizedImageSize)
 
-    def use(self, board, blankBoard, ichorLeft):
+    def use(self, board, blankBoard, ichorLeft, enemy):
         # checks whether the player has enough ichor to play the card
         if ichorLeft >= self.ichorCost:
             # subtracts ichorLeft by the ichor cost
             ichorLeft -= self.ichorCost
             # plays the cards definition when used
-            self.used(board=board, blankBoard=blankBoard)
+            self.used(enemy=enemy, board=board, blankBoard=blankBoard)
             # returns different things depending on whether the card exausted, got played, or didn't
             if self.exhaust:
                 return 2, ichorLeft
@@ -62,39 +60,49 @@ class Card:
 
 
 class Enemy:
-    def __init__(self, x, y, image, name, description, attacks, attackOdds, hp):
-        # location of the image of the card
+    def __init__(self, x, y, images, name, description, attack, hp, width, height, scaleWidth, scaleHeight):
+        # location of the image of the enemy and
         self.x = x
         self.y = y
-        # image of the card
-        self.image = image
-        # name of the card
+        self.width = width
+        self.height = height
+        # resized location of the image of the enemy
+        self.resizedX = x
+        self.resizedY = y
+        self.resizedImageSize = (width, height)
+        # images of the enemy
+        self.images = images
+        # resized images of the enemy
+        self.resizedImages = images
+        # name of the enemy
         self.name = name
-        # the description of a card
+        # the description of the enemy
         self.description = description
-        # all the cards attacks and the odds of those happening
-        self.attacks = attacks
-        self.attackOdds = attackOdds
-        # the enemies hp
+        # the enemy's attack
+        self.attack = attack
+        # the enemy's hp
         self.hp = hp
         # effects that the enemy can have
         self.crippling = 0
+        # resizing character sprites
+        self.resize(scaleWidth, scaleHeight)
 
-    def draw(self, screen):
+    def draw(self, screen, globalCounter):
         # draws the card
-        screen.blit(self.image, enemyX, enemyY)
+        screen.blit(self.images[int(globalCounter / 10) % len(self.images)], self.resizedX, self.resizedY)
 
-    def turn(self):
+    def turn(self, turn, board):
         # reduces effects
         if self.crippling > 0:
             self.crippling -= 1
-        # randomly choses and acts out an attack
-        number = randint(1, sum(self.attackOdds))
-        total = 0
-        counter = 0
-        for odd in self.attackOdds:
-            if odd <= number:
-                self.attacks[counter]()
-                break
-            total += odd
-            counter += 1
+        # runs the attack definition
+        self.attack(turn, board)
+
+    def resize(self, scaleWidth, scaleHeight):
+        # resizes the image and location of image
+        self.resizedX = int(self.x * scaleWidth) + 1
+        self.resizedY = int(self.y * scaleHeight) + 1
+        self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
+        self.resizedImages = []
+        for image in self.images:
+            self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))

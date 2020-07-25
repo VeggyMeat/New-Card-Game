@@ -9,7 +9,7 @@ cardRoot = 'Images\\Cards\\'
 # cards
 
 
-def LuckOfTheDice(board, blankBoard):
+def LuckOfTheDice(enemy, board, blankBoard):
     newBoard = deepcopy(blankBoard)
     for row in board:
         for card in row:
