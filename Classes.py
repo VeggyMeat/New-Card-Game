@@ -96,7 +96,7 @@ class Enemy:
         if self.crippling > 0:
             self.crippling -= 1
         # runs the attack definition
-        self.attack(turn, board)
+        self.attack(turn, board, hp)
 
     def resize(self, scaleWidth, scaleHeight):
         # resizes the image and location of image
