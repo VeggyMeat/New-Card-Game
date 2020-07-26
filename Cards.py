@@ -1,11 +1,14 @@
 from random import randint
 from copy import deepcopy
+from pathlib import Path
 import pygame
 from Classes import Card
 cards = []
 # base for adding in the dictionaries for the cards and the root of where the images are
 blankCard = {'used': False, 'image': False, 'name': False, 'description': False, 'ichorCost': False, 'exhaust': False}
-cardRoot = 'Images\\Cards\\'
+
+# use pathlib to set file source directory, NORMAL SLASHES
+cardRoot = Path("Images/Cards/")
 
 # cards
 
@@ -31,4 +34,4 @@ def StrikeAtTheHeart(enemy, board, blankBoard):
     enemy.hp -= 15
 
 
-cards.append([False, False, False, False, StrikeAtTheHeart, pygame.image.load(cardRoot+'StrikeAtTheHeart.png'), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])
+cards.append([False, False, False, False, StrikeAtTheHeart, pygame.image.load(str(cardRoot/'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])
