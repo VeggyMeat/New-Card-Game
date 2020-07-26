@@ -1,6 +1,7 @@
 from random import randint
 from copy import deepcopy
 import pygame
+from Classes import Card
 cards = []
 # base for adding in the dictionaries for the cards and the root of where the images are
 blankCard = {'used': False, 'image': False, 'name': False, 'description': False, 'ichorCost': False, 'exhaust': False}
@@ -22,7 +23,7 @@ def LuckOfTheDice(enemy, board, blankBoard):
     return newBoard
 
 
-cards.append({'used': LuckOfTheDice, 'image': False, 'name': 'luck of the dice', 'description': 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack for no ichor', 'ichorCost': 0, 'exhaust': True})
+cards.append(Card(False, False, False, False, LuckOfTheDice, False, 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, True))
 
 
 def StrikeAtTheHeart(enemy, board, blankBoard):
@@ -30,4 +31,4 @@ def StrikeAtTheHeart(enemy, board, blankBoard):
     enemy.hp -= 15
 
 
-cards.append({'used': StrikeAtTheHeart, 'image': pygame.image.load(cardRoot+'StrikeAtTheHeart'), 'name': 'strike at the heart', 'description': 'high cost, medium damage, status effect, single target', 'ichorCost': 3, 'exhaust': False})
+cards.append([False, False, False, False, StrikeAtTheHeart, pygame.image.load(cardRoot+'StrikeAtTheHeart.png'), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])

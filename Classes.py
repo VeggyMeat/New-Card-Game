@@ -6,7 +6,7 @@ cardHEIGHT = 150
 
 
 class Card:
-    def __init__(self, x, y, screenX, screenY, used, image, scaleWidth, scaleHeight, name, description, ichorCost, exhaust):
+    def __init__(self, x, y, screenX, screenY, used, image, name, description, ichorCost, exhaust):
         # integers between 0 and 4
         self.x = x
         self.y = y
@@ -29,8 +29,6 @@ class Card:
         # creates these variables purely so my IDE doesn't get mad at me
         self.resizedImageSize = ()
         self.resizedImage = image
-        # resizes the image to the players monitor screen (hopefully)
-        self.resize(scaleWidth, scaleHeight)
         # a variable that tells if the card will be removed from the deck after being used
         self.exhaust = exhaust
 
@@ -60,7 +58,7 @@ class Card:
 
 
 class Enemy:
-    def __init__(self, x, y, images, name, description, attack, hp, width, height, scaleWidth, scaleHeight):
+    def __init__(self, x, y, images, name, description, attack, hp, width, height):
         # location of the image of the enemy and
         self.x = x
         self.y = y
@@ -85,13 +83,12 @@ class Enemy:
         # effects that the enemy can have
         self.crippling = 0
         # resizing character sprites
-        self.resize(scaleWidth, scaleHeight)
 
     def draw(self, screen, globalCounter):
         # draws the card
-        screen.blit(self.images[int(globalCounter / 10) % len(self.images)], self.resizedX, self.resizedY)
+        screen.blit(self.resizedImages[int(globalCounter / 10) % len(self.resizedImages)], (self.resizedX, self.resizedY))
 
-    def turn(self, turn, board):
+    def turn(self, turn, board, hp):
         # reduces effects
         if self.crippling > 0:
             self.crippling -= 1
@@ -102,7 +99,12 @@ class Enemy:
         # resizes the image and location of image
         self.resizedX = int(self.x * scaleWidth) + 1
         self.resizedY = int(self.y * scaleHeight) + 1
-        self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
+        self.resizedImageSize = (int(self.width * scaleWidth) + 1, int(self.height * scaleHeight) + 1)
         self.resizedImages = []
         for image in self.images:
             self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))
+
+
+class Mouse:
+    def __init__(self):
+        pass

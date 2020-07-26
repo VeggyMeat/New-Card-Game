@@ -1,10 +1,10 @@
 from random import randint
-import pygame
 from pygame.locals import *
-from Classes import *
+import pygame
 from Cards import *
+from Enemies import *
+from Classes import *
 from copy import deepcopy
-import time
 globalCounter = 0
 turn = 0
 # sets up pygame
@@ -32,10 +32,13 @@ scaleWidth = width / WIDTH
 scaleHeight = height / HEIGHT
 Open = True
 deck = []
+stackCards = deck
 maxIchor = 4
-currentEnemy = 0
+currentEnemy = enemies[0]
+currentEnemy.resize(scaleWidth, scaleHeight)
 ichorLeft = maxIchor
 hp = 100
+cardsDRAWN = 10
 
 # all the blank templates for moving cards, the board
 
@@ -58,6 +61,13 @@ blankMove = [
             ]
 
 board = deepcopy(blankBoard)
+for x in range(5):
+    for y in range(5):
+        print(Card)
+        board[x][y]['card'] = Card(cards[1][0], cards[1][1], cards[1][2], cards[1][3], cards[1][4], cards[1][5], cards[1][6], cards[1][7], cards[1][8], cards[1][9])
+        board[x][y]['card'].screenX = 120 * x + 50
+        board[x][y]['card'].screenY = 170 * y + 50
+        board[x][y]['card'].resize(scaleWidth, scaleHeight)
 
 
 # some code to shuffle a deck of cards
@@ -85,12 +95,24 @@ def move(board, spot):
     return newBoard
 
 
+def drawCard(board, stackCards):
+    shuffle(stackCards)
+    while True:
+        if not board[randint(0, 4)][randint(0, 4)]['card']:
+            board[randint(0, 4)][randint(0, 4)]['card'] = stackCards[0]
+            stackCards.pop(0)
+            break
+    return board, stackCards
+
+
 # will draw all things on the screen
 def Draw():
+    screen.fill(WHITE)
     for row in board:
         for card in row:
-            if not card['card']:
+            if card['card'] != False:
                 card['card'].draw(screen)
+    currentEnemy.draw(screen, globalCounter)
     pygame.display.update()
 
 
@@ -101,27 +123,42 @@ def reSize(event):
     scaleWidth = width / WIDTH
     scaleHeight = height / HEIGHT
     screen = pygame.display.set_mode((width, height), RESIZABLE, VIDEORESIZE)
+    for row in board:
+        for card in row:
+            if card['card'] != False:
+                card['card'].resize(scaleWidth, scaleHeight)
+    currentEnemy.resize(scaleWidth, scaleHeight)
     return width, height, scaleWidth, scaleHeight, screen
 
 
-def nextTurn(currentEnemy):
-    global turn, ichorLeft, hp
+def nextTurn(board, turn, ichorLeft, hp):
     turn += 1
     for row in board:
         for card in row:
             hp -= card['attacked']
-    currentEnemy.turn()
+
+    currentEnemy.turn(turn, board, hp)
     ichorLeft = maxIchor
+    return board
 
 
-nextTurn(currentEnemy)
+def clicked():
+    pressed = pygame.mouse.get_pressed()
+    location = pygame.mouse.get_pos()
+    if pressed[0]:
+        for row in board:
+            for card in row:
+                if card['card'] != False:
+                    if location[0] > card['card'].resizedX and location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
+                        if location[1] > card['card'].resizedY and location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
+                            print('collided')
+
+nextTurn(board, turn, ichorLeft, hp)
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
     globalCounter += 1
     # gets the location of the mouse and whether the mouse has been pressed
-    pressed = pygame.mouse.get_pressed()
-    location = pygame.mouse.get_cursor()
     for event in pygame.event.get():
         # checks if the person has tried to close the window and closes the code
         if event.type == QUIT:
@@ -130,5 +167,6 @@ while Open:
         elif event.type == VIDEORESIZE:
             width, height, scaleWidth, scaleHeight, screen = reSize(event)
 
+    clicked()
     Draw()
 pygame.quit()
