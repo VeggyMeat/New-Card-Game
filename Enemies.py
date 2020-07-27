@@ -2,10 +2,11 @@ from random import randint
 from copy import deepcopy
 import pygame
 from Classes import Enemy
+from pathlib import Path
 enemies = []
 # base for adding in the dictionaries for the cards and the root of where the images are
 blankCard = {'images': False, 'name': False, 'description': False, 'attack': False, 'hp': False, 'width': False, 'height': False}
-enemyRoot = 'Images\\Enemies\\'
+enemyRoot = Path('Images/Enemies/')
 bottomLeft = (900, 900)
 
 # enemies
@@ -40,5 +41,5 @@ def MushroomAttack(turn, board, hp):
     return hp, board
 
 
-images = [pygame.image.load(enemyRoot + 'Mushroom1.png'), pygame.image.load(enemyRoot + 'Mushroom2.png'), pygame.image.load(enemyRoot + 'Mushroom3.png'), pygame.image.load(enemyRoot + 'Mushroom4.png')]
+images = [pygame.image.load(enemyRoot/'Mushroom1.png'), pygame.image.load(enemyRoot/'Mushroom2.png'), pygame.image.load(enemyRoot/'Mushroom3.png'), pygame.image.load(enemyRoot/'Mushroom4.png')]
 enemies.append(Enemy(bottomLeft[0], bottomLeft[1]-140, images, 'Mushroom', 'most basic of enemies, can apply spores at intervals', MushroomShow, MushroomAttack, 17, 140, 140))

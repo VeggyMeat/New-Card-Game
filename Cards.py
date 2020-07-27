@@ -2,11 +2,12 @@ from random import randint
 from copy import deepcopy
 import pygame
 from Definitions import shuffle
+from pathlib import Path
 from Classes import Card
 cards = []
 # base for adding in the dictionaries for the cards and the root of where the images are
 blankCard = {'used': False, 'image': False, 'name': False, 'description': False, 'ichorCost': False, 'exhaust': False}
-cardRoot = 'Images\\Cards\\'
+cardRoot = Path("Images/Cards/")
 
 # cards
 
@@ -35,7 +36,7 @@ def LuckOfTheDice(enemy, board, blankBoard, scaleWidth, scaleHeight):
     return enemy, newBoard
 
 
-cards.append([LuckOfTheDice, pygame.image.load(cardRoot + 'StrikeAtTheHeart.png'), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, True])
+cards.append([LuckOfTheDice, pygame.image.load(cardRoot / 'StrikeAtTheHeart.png'), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, True])
 
 
 def StrikeAtTheHeart(enemy, board, blankBoard, scaleWidth, scaleHeight):
@@ -44,4 +45,4 @@ def StrikeAtTheHeart(enemy, board, blankBoard, scaleWidth, scaleHeight):
     return enemy, board
 
 
-cards.append([StrikeAtTheHeart, pygame.image.load(cardRoot + 'StrikeAtTheHeart.png'), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])
+cards.append([StrikeAtTheHeart, pygame.image.load(cardRoot / 'StrikeAtTheHeart.png'), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])
