@@ -4,7 +4,9 @@ import pygame
 from Cards import *
 from Enemies import *
 from Classes import *
+from Definitions import *
 from copy import deepcopy
+import time
 globalCounter = 0
 turn = 0
 # sets up pygame
@@ -42,7 +44,7 @@ cardsDRAWN = 10
 
 # all the blank templates for moving cards, the board
 
-blankCard = {'card': False, 'playable': False, 'attacked': 0, 'effects': {'spores': 0, 'block': 0}}
+blankCard = {'card': False, 'playable': False, 'attacked': 0, 'spores': 0, 'block': 0}
 
 blankBoard = [
               [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
@@ -63,21 +65,9 @@ blankMove = [
 board = deepcopy(blankBoard)
 for x in range(5):
     for y in range(5):
-        print(Card)
-        board[x][y]['card'] = Card(cards[1][0], cards[1][1], cards[1][2], cards[1][3], cards[1][4], cards[1][5], cards[1][6], cards[1][7], cards[1][8], cards[1][9])
-        board[x][y]['card'].screenX = 120 * x + 50
-        board[x][y]['card'].screenY = 170 * y + 50
-        board[x][y]['card'].resize(scaleWidth, scaleHeight)
-
-
-# some code to shuffle a deck of cards
-def shuffle(deck):
-    newDeck = []
-    while len(deck) > 0:
-        card = deck[randint(1, len(deck)-1)]
-        newDeck.append(card)
-        deck.remove(card)
-    return newDeck
+        if randint(0, 1) == 1:
+            board[x][y]['card'] = Card(x, y, 120 * x + 50, 170 * y + 50, cards[0][0], cards[0][1], cards[0][2], cards[0][3], cards[0][4], cards[0][5])
+            board[x][y]['card'].resize(scaleWidth, scaleHeight)
 
 
 # code to allow two arrays to be entered with one being the board and the other where each card moves on a co-ordinate system and moves each one and allows them to loop
@@ -93,16 +83,6 @@ def move(board, spot):
             counter2 += 1
         counter1 += 1
     return newBoard
-
-
-def drawCard(board, stackCards):
-    shuffle(stackCards)
-    while True:
-        if not board[randint(0, 4)][randint(0, 4)]['card']:
-            board[randint(0, 4)][randint(0, 4)]['card'] = stackCards[0]
-            stackCards.pop(0)
-            break
-    return board, stackCards
 
 
 # will draw all things on the screen
@@ -131,29 +111,49 @@ def reSize(event):
     return width, height, scaleWidth, scaleHeight, screen
 
 
-def nextTurn(board, turn, ichorLeft, hp):
+def nextTurn():
+    global turn, hp, ichorLeft
     turn += 1
     for row in board:
         for card in row:
             hp -= card['attacked']
-
     currentEnemy.turn(turn, board, hp)
     ichorLeft = maxIchor
-    return board
 
 
 def clicked():
+    global ichorLeft, board, currentEnemy
+    print(ichorLeft)
     pressed = pygame.mouse.get_pressed()
     location = pygame.mouse.get_pos()
+    response = True
     if pressed[0]:
         for row in board:
             for card in row:
                 if card['card'] != False:
                     if location[0] > card['card'].resizedX and location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
                         if location[1] > card['card'].resizedY and location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
-                            print('collided')
+                            ID = card['card'].id
+                            response, ichorLeft, currentEnemy, board = card['card'].use(board, blankBoard, ichorLeft, currentEnemy, scaleWidth, scaleHeight)
+                            break
+    if response != True:
+        time.sleep(.1)
+        location = (0, 0)
+        counter1 = 0
+        for row in board:
+            counter2 = 0
+            for card in row:
+                if card['card'] != False:
+                    if card['card'].id == ID:
+                        location = (counter1, counter2)
+                counter2 += 1
+            counter1 += 1
+        if response == 1:
+            stackCards.append(board[location[0]][location[1]]['card'])
+        if response >= 1:
+            board[location[0]][location[1]]['card'] = False
 
-nextTurn(board, turn, ichorLeft, hp)
+nextTurn()
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)

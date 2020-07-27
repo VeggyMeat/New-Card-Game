@@ -10,6 +10,8 @@ class Card:
         # integers between 0 and 4
         self.x = x
         self.y = y
+        # a random id that should be unique
+        self.id = randint(1, 1000000000000)
         # name of the card
         self.name = name
         # description of the card
@@ -43,22 +45,22 @@ class Card:
         self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
         self.resizedImage = pygame.transform.scale(self.image, self.resizedImageSize)
 
-    def use(self, board, blankBoard, ichorLeft, enemy):
+    def use(self, board, blankBoard, ichorLeft, enemy, scaleWidth, scaleHeight):
         # checks whether the player has enough ichor to play the card
         if ichorLeft >= self.ichorCost:
             # subtracts ichorLeft by the ichor cost
             ichorLeft -= self.ichorCost
             # plays the cards definition when used
-            self.used(enemy=enemy, board=board, blankBoard=blankBoard)
+            enemy, board = self.used(enemy=enemy, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight)
             # returns different things depending on whether the card exausted, got played, or didn't
             if self.exhaust:
-                return 2, ichorLeft
-            return 1, ichorLeft
-        return 0, ichorLeft
+                return 2, ichorLeft, enemy, board
+            return 1, ichorLeft, enemy, board
+        return 0, ichorLeft, enemy, board
 
 
 class Enemy:
-    def __init__(self, x, y, images, name, description, attack, hp, width, height):
+    def __init__(self, x, y, images, name, description, attackShow, attack, hp, width, height):
         # location of the image of the enemy and
         self.x = x
         self.y = y
@@ -77,12 +79,13 @@ class Enemy:
         # the description of the enemy
         self.description = description
         # the enemy's attack
+        self.attackShow = attackShow
         self.attack = attack
         # the enemy's hp
         self.hp = hp
         # effects that the enemy can have
         self.crippling = 0
-        # resizing character sprites
+        # symbols that will be drawn with the character in some circumstances
 
     def draw(self, screen, globalCounter):
         # draws the card
