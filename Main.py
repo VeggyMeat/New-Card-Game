@@ -18,10 +18,11 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+FORESTGREEN = (1, 68, 33)
 BLUE = (0, 0, 255)
 PURPLE = (255, 0, 255)
 TURQUOISE = (0, 255, 255)
-YELLOW = (0, 255, 255)
+YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 # sets up the windowed screen and allowing things to resize when window size changed
 screen = pygame.display.set_mode((1920, 1080), RESIZABLE, VIDEORESIZE)
@@ -35,7 +36,7 @@ scaleHeight = height / HEIGHT
 Open = True
 deck = []
 stackCards = deck
-maxIchor = 4
+maxIchor = 5
 currentEnemy = enemies[0]
 currentEnemy.resize(scaleWidth, scaleHeight)
 ichorLeft = maxIchor
@@ -63,6 +64,7 @@ blankMove = [
             ]
 
 board = deepcopy(blankBoard)
+board[2][2]['playable'] = True
 for x in range(5):
     for y in range(5):
         if randint(0, 1) == 1:
@@ -87,11 +89,37 @@ def move(board, spot):
 
 # will draw all things on the screen
 def Draw():
-    screen.fill(WHITE)
+    global scaleWidth, scaleHeight
+    screen.fill((WHITE))
+    counter1 = 0
     for row in board:
+        counter2 = 0
         for card in row:
+            PLACEDCOLOUR = False
+            if card['playable']:
+                colour = GREEN
+                PLACEDCOLOUR = colour
+                pygame.draw.rect(screen, colour, (int((120 * counter1 + 40) * scaleWidth) + 1, int((170 * counter2 + 40) * scaleHeight) + 1, int((cardWIDTH + 20) * scaleWidth) + 1, int((cardHEIGHT + 20) * scaleHeight) + 1))
+                if card['card'] != False:
+                    oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
+                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * 120 + 50) * scaleWidth) + 1, int((counter2 * 170 + 50) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
+            if card['attacked'] > 0:
+                colour = RED
+                if PLACEDCOLOUR != False:
+                    colour = (int((colour[0]+PLACEDCOLOUR[0]) / 2), int((colour[1]+PLACEDCOLOUR[1]) / 2), int((colour[2]+PLACEDCOLOUR[2]) / 2))
+                PLACEDCOLOUR = colour
+                pygame.draw.rect(screen, colour, (int((120 * counter1 + 40) * scaleWidth) + 1, int((170 * counter2 + 40) * scaleHeight) + 1, int((cardWIDTH + 20) * scaleWidth) + 1, int((cardHEIGHT + 20) * scaleHeight) + 1))
+                if card['card'] != False:
+                    oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
+                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * 120 + 50) * scaleWidth) + 1, int((counter2 * 170 + 50) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
+
             if card['card'] != False:
                 card['card'].draw(screen)
+            counter2 += 1
+        counter1 += 1
+
+    for button in buttons:
+        button.draw(screen)
     currentEnemy.draw(screen, globalCounter)
     pygame.display.update()
 
@@ -107,37 +135,60 @@ def reSize(event):
         for card in row:
             if card['card'] != False:
                 card['card'].resize(scaleWidth, scaleHeight)
+    for button in buttons:
+        button.resize(scaleWidth, scaleHeight)
     currentEnemy.resize(scaleWidth, scaleHeight)
     return width, height, scaleWidth, scaleHeight, screen
 
 
 def nextTurn():
-    global turn, hp, ichorLeft
+    global turn, hp, ichorLeft, board, stackCards
+    hp, board = currentEnemy.attack(currentEnemy, turn, board, hp)
     turn += 1
+    counter = 0
     for row in board:
         for card in row:
             hp -= card['attacked']
-    currentEnemy.turn(turn, board, hp)
+            card['attacked'] = 0
+            if card['card'] != False:
+                stackCards.append(card['card'])
+                counter += 1
+                card['card'] = False
+
+    for x in range(len(stackCards)):
+        board, stackCards = drawCard(board, stackCards)
+
+    board = currentEnemy.turn(turn, board)
     ichorLeft = maxIchor
+    event = Mouse()
+    event.w, event.h = width, height
+    reSize(event)
 
 
 def clicked():
     global ichorLeft, board, currentEnemy
-    print(ichorLeft)
     pressed = pygame.mouse.get_pressed()
     location = pygame.mouse.get_pos()
-    response = True
+    response = 'a'
     if pressed[0]:
         for row in board:
             for card in row:
                 if card['card'] != False:
-                    if location[0] > card['card'].resizedX and location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
-                        if location[1] > card['card'].resizedY and location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
+                    if card['card'].resizedX < location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
+                        if card['card'].resizedY < location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
                             ID = card['card'].id
-                            response, ichorLeft, currentEnemy, board = card['card'].use(board, blankBoard, ichorLeft, currentEnemy, scaleWidth, scaleHeight)
+                            response, ichorLeft, currentEnemy, board = card['card'].use(board, blankBoard, ichorLeft, currentEnemy, scaleWidth, scaleHeight, turn)
+                            time.sleep(.1)
                             break
-    if response != True:
-        time.sleep(.1)
+
+        for button in buttons:
+            if button.resizedX < location[0] < button.resizedX + button.resizedWidth:
+                if button.resizedY < location[1] < button.resizedY + button.resizedHeight:
+                    button.use()
+                    time.sleep(.1)
+                        
+    if response != 'a':
+        print('huh')
         location = (0, 0)
         counter1 = 0
         for row in board:
@@ -153,6 +204,9 @@ def clicked():
         if response >= 1:
             board[location[0]][location[1]]['card'] = False
 
+
+nextTurnButton = Button(WIDTH-100, HEIGHT-20, 100, 20, nextTurn, RED)
+buttons = [nextTurnButton]
 nextTurn()
 while Open:
     # makes sure the game is running no faster than 60 fps

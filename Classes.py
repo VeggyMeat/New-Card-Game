@@ -45,17 +45,18 @@ class Card:
         self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
         self.resizedImage = pygame.transform.scale(self.image, self.resizedImageSize)
 
-    def use(self, board, blankBoard, ichorLeft, enemy, scaleWidth, scaleHeight):
+    def use(self, board, blankBoard, ichorLeft, enemy, scaleWidth, scaleHeight, turn):
         # checks whether the player has enough ichor to play the card
         if ichorLeft >= self.ichorCost:
             # subtracts ichorLeft by the ichor cost
             ichorLeft -= self.ichorCost
             # plays the cards definition when used
-            enemy, board = self.used(enemy=enemy, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight)
+            used, enemy, board = self.used(self, enemy=enemy, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn)
             # returns different things depending on whether the card exausted, got played, or didn't
-            if self.exhaust:
-                return 2, ichorLeft, enemy, board
-            return 1, ichorLeft, enemy, board
+            if used:
+                if self.exhaust:
+                    return 2, ichorLeft, enemy, board
+                return 1, ichorLeft, enemy, board
         return 0, ichorLeft, enemy, board
 
 
@@ -86,17 +87,21 @@ class Enemy:
         # effects that the enemy can have
         self.crippling = 0
         # symbols that will be drawn with the character in some circumstances
+        self.symbols = []
+        self.resizedSymbols = []
+        self.resizedSymbolSize = (20, 20)
 
     def draw(self, screen, globalCounter):
         # draws the card
         screen.blit(self.resizedImages[int(globalCounter / 10) % len(self.resizedImages)], (self.resizedX, self.resizedY))
 
-    def turn(self, turn, board, hp):
+    def turn(self, turn, board):
         # reduces effects
         if self.crippling > 0:
             self.crippling -= 1
         # runs the attack definition
-        self.attack(turn, board, hp)
+        board = self.attackShow(self, turn, board)
+        return board
 
     def resize(self, scaleWidth, scaleHeight):
         # resizes the image and location of image
@@ -104,6 +109,10 @@ class Enemy:
         self.resizedY = int(self.y * scaleHeight) + 1
         self.resizedImageSize = (int(self.width * scaleWidth) + 1, int(self.height * scaleHeight) + 1)
         self.resizedImages = []
+        self.resizedSymbols = []
+        self.resizedSymbolSize = (int(20 * scaleWidth) + 1, int(20 * scaleHeight) + 1)
+        for symbol in self.symbols:
+            self.resizedSymbols.append(pygame.transform.scale(symbol, self.resizedSymbolSize))
         for image in self.images:
             self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))
 
@@ -111,3 +120,26 @@ class Enemy:
 class Mouse:
     def __init__(self):
         pass
+
+
+class Button:
+    def __init__(self, x, y, width, height, use, colour):
+        self.x = x
+        self.y = y
+        self.resizedX = x
+        self.resizedY = y
+        self.width = width
+        self.height = height
+        self.resizedWidth = width
+        self.resizedHeight = height
+        self.use = use
+        self.colour = colour
+
+    def resize(self, scaleWidth, scaleHeight):
+        self.resizedX = int(self.x * scaleWidth) + 1
+        self.resizedY = int(self.y * scaleHeight) + 1
+        self.resizedWidth = int(self.width * scaleWidth) + 1
+        self.resizedHeight = int(self.height * scaleHeight) + 1
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.colour, (self.resizedX, self.resizedY, self.resizedWidth, self.resizedHeight))
