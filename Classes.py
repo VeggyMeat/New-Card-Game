@@ -6,7 +6,7 @@ cardHEIGHT = 150
 
 
 class Card:
-    def __init__(self, x, y, screenX, screenY, used, image, name, description, ichorCost, exhaust):
+    def __init__(self, x, y, screenX, screenY, used, image, name, description, ichorCost, exhaust, select):
         # integers between 0 and 4
         self.x = x
         self.y = y
@@ -33,6 +33,7 @@ class Card:
         self.resizedImage = image
         # a variable that tells if the card will be removed from the deck after being used
         self.exhaust = exhaust
+        self.select = select
 
     def draw(self, screen):
         # draws the resized image on screen
@@ -49,11 +50,11 @@ class Card:
         # checks whether the player has enough ichor to play the card
         if ichorLeft >= self.ichorCost:
             # subtracts ichorLeft by the ichor cost
-            ichorLeft -= self.ichorCost
             # plays the cards definition when used
             used, enemy, board = self.used(self, enemy=enemy, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn)
             # returns different things depending on whether the card exausted, got played, or didn't
             if used:
+                ichorLeft -= self.ichorCost
                 if self.exhaust:
                     return 2, ichorLeft, enemy, board
                 return 1, ichorLeft, enemy, board
@@ -94,6 +95,10 @@ class Enemy:
     def draw(self, screen, globalCounter):
         # draws the card
         screen.blit(self.resizedImages[int(globalCounter / 10) % len(self.resizedImages)], (self.resizedX, self.resizedY))
+        counter = 0
+        for symbol in self.resizedSymbols:
+            screen.blit(symbol, (self.resizedX+int(counter*self.resizedSymbolSize[0]), int(self.resizedY + self.resizedImageSize[1] + self.resizedSymbolSize[1])))
+            counter += 1.2
 
     def turn(self, turn, board):
         # reduces effects
@@ -115,6 +120,12 @@ class Enemy:
             self.resizedSymbols.append(pygame.transform.scale(symbol, self.resizedSymbolSize))
         for image in self.images:
             self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))
+
+    def hit(self, damage):
+        if self.crippling > 0:
+            self.hp -= int(damage * 1.2)
+        else:
+            self.hp -= damage
 
 
 class Mouse:

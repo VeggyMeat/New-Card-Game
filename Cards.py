@@ -5,8 +5,6 @@ from Definitions import shuffle
 from pathlib import Path
 from Classes import Card
 cards = []
-# base for adding in the dictionaries for the cards and the root of where the images are
-blankCard = {'used': False, 'image': False, 'name': False, 'description': False, 'ichorCost': False, 'exhaust': False}
 cardRoot = Path("Images/Cards/")
 
 # cards
@@ -37,31 +35,35 @@ def LuckOfTheDice(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn)
     return False, enemy, board
 
 
-cards.append([LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, False])
+cards.append([LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, False, False])
 
 
 def StrikeAtTheHeart(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
     if board[self.x][self.y]['playable']:
         enemy.crippling += 2
-        enemy.hp -= 15
+        enemy.hit(15)
         return True, enemy, board
     return False, enemy, board
 
 
-cards.append([StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False])
+cards.append([StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False, True])
 
 
 def SneakAttack(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
     if board[self.x][self.y]['playable'] or turn == 1:
-        enemy.hp -= 5
+        enemy.hit(5)
+        return True, enemy, board
+    return False, enemy, board
 
 
-cards.append([SneakAttack, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'sneak attack', 'low cost, low damage, single target', 1, False])
+cards.append([SneakAttack, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'sneak attack', 'low cost, low damage, single target', 1, False, True])
 
 
 def Execute(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
     if board[self.x][self.y]['playable'] or enemy.hp <= 10:
-        enemy.hp -= 10
+        enemy.hit(10)
+        return True, enemy, board
+    return False, enemy, board
 
 
-cards.append([Execute, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'execute', 'medium cost with medium damage, single target', 2, False])
+cards.append([Execute, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'execute', 'medium cost with medium damage, single target', 2, False, True])
