@@ -7,6 +7,8 @@ enemies = []
 # the root of where the images are
 enemyRoot = Path('Images/Enemies/')
 symbolRoot = Path('Images/Symbols/')
+
+# some variables
 bottomLeft = (900, 900)
 sporeDetonation = pygame.image.load(str(symbolRoot / 'SporeDetonation.png'))
 
@@ -14,8 +16,13 @@ sporeDetonation = pygame.image.load(str(symbolRoot / 'SporeDetonation.png'))
 
 
 def MushroomShow(self, turn, board):
+    # adds a headbut to a random tile
     board[randint(0, 4)][randint(0, 4)]['attacked'] += 1
+
+    # gets a probability
     number = randint(1, 4)
+
+    # depending on the probability does anywhere from 1-3 headbutts and 0-4 spores
     if number == 1:
         board[randint(0, 4)][randint(0, 4)]['attacked'] += 1
     else:
@@ -26,14 +33,20 @@ def MushroomShow(self, turn, board):
     else:
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
+
+    # shows that it will blow up the spores if the turn counter is a multiple of 3
     if turn % 3 == 0:
         self.symbols.append(sporeDetonation)
     return board
 
 
 def MushroomAttack(self, turn, board, hp):
+    # if the turn is a multiple of three then it runs
     if turn % 3 == 0 and turn != 0:
+        # removes the blow up symbol
         self.symbols.remove(sporeDetonation)
+
+        # loops through each card and blows up the spores
         for row in board:
             for card in row:
                 hp -= card['spores']
