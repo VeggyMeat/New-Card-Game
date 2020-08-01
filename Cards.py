@@ -3,6 +3,7 @@ from copy import deepcopy
 import pygame
 from Definitions import shuffle
 from pathlib import Path
+from Constants import *
 from Classes import Card
 # sets up some variables
 cards = []
@@ -11,7 +12,7 @@ cardRoot = Path("Images/Cards/")
 # cards
 
 
-def LuckOfTheDice(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
+def LuckOfTheDice(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player, enemies):
     # checks if the card is on a playable tile
     if board[self.x][self.y]['playable']:
         # sets up some variables
@@ -42,64 +43,100 @@ def LuckOfTheDice(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn)
 
                     # checks if the type is the card class and if so resizes and adds the new co-ordinates for the card
                     if type == 'card' and newBoard[cordsX][cordsY][type] != False:
-                        newBoard[cordsX][cordsY][type].x, newBoard[cordsX][cordsY][type].y, newBoard[cordsX][cordsY][type].screenX, newBoard[cordsX][cordsY][type].screenY = cordsX, cordsY, 120 * cordsX + 50, 170 * cordsY + 50
+                        newBoard[cordsX][cordsY][type].x, newBoard[cordsX][cordsY][type].y, newBoard[cordsX][cordsY][type].screenX, newBoard[cordsX][cordsY][type].screenY = cordsX, cordsY, cardGapWIDTH * cordsX + cardSpaceWIDTH, cardGapHEIGHT * cordsY + cardSpaceHEIGHT
                         newBoard[cordsX][cordsY][type].resize(scaleWidth=scaleWidth, scaleHeight=scaleHeight)
                 counter2 += 1
             counter1 += 1
         # returns saying that it was played
-        return True, enemy, newBoard
+        return True, targets, newBoard
     # returns saying it wasn't able to be played
-    return False, enemy, board
+    return False, targets, board
 
 
-# appends this newly made card not in a class format so many can be made many times
-cards.append([LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, False, False])
+# appends this newly made card not in a class format so many can be made
+cards.append([LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, False, {'enemy': 0, 'card': 0, 'enemies': 0}])
 
 
-def StrikeAtTheHeart(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
+def StrikeAtTheHeart(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile
     if board[self.x][self.y]['playable']:
-        # applies its effects to the enemy
-        enemy.crippling += 2
-        enemy.hit(15)
+        # applies its effects to the target
+        target.crippled += 2
+        target.hit(15, player)
 
-        # returns sating that it was played
-        return True, enemy, board
+        # returns saying that it was played
+        return True, targets, board
     # returns saying that it wasn't able to be played
-    return False, enemy, board
+    return False, targets, board
 
 
-# appends this newly made card not in a class format so many can be made many times
-cards.append([StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False, True])
+# appends this newly made card not in a class format so many can be made
+cards.append([StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False, {'enemy': 1, 'card': 0, 'enemies': 0}])
 
 
-def SneakAttack(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
+def SneakAttack(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile or if its turn 1
     if board[self.x][self.y]['playable'] or turn == 1:
-        # applies damage to the enemy
-        enemy.hit(5)
+        # applies damage to the target
+        target.hit(5, player)
 
-        # returns sating that it was played
-        return True, enemy, board
+        # returns saying that it was played
+        return True, targets, board
     # returns saying that it wasn't able to be played
-    return False, enemy, board
+    return False, targets, board
 
 
-# appends this newly made card not in a class format so many can be made many times
-cards.append([SneakAttack, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'sneak attack', 'low cost, low damage, single target', 1, False, True])
+# appends this newly made card not in a class format so many can be made
+cards.append([SneakAttack, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'sneak attack', 'low cost, low damage, single target', 1, False, {'enemy': 1, 'card': 0, 'enemies': 0}])
 
 
-def Execute(self, enemy, board, blankBoard, scaleWidth, scaleHeight, turn):
-    # checks if the card is on a playable tile or the enemy is able to be one shot by the card
-    if board[self.x][self.y]['playable'] or enemy.hp <= 10:
-        # applies damage to the enemy
-        enemy.hit(10)
+def Execute(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile or the target is able to be one shot by the card
+    if board[self.x][self.y]['playable'] or target.hp <= 10:
+        # applies damage to the target
+        target.hit(10, player)
 
-        # returns sating that it was played
-        return True, enemy, board
+        # returns saying that it was played
+        return True, targets, board
     # returns saying that it wasn't able to be played
-    return False, enemy, board
+    return False, targets, board
 
 
-# appends this newly made card not in a class format so many can be made many times
-cards.append([Execute, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'execute', 'medium cost with medium damage, single target', 2, False, True])
+# appends this newly made card not in a class format so many can be made
+cards.append([Execute, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'execute', 'medium cost with medium damage, single target', 2, False, {'enemy': 1, 'card': 0, 'enemies': 0}])
+
+
+def IchorSurge(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile or the player has no ichor left
+    if board[self.x][self.y]['playable'] or player.ichorLeft == 0:
+        # increases the ichor left by 1
+        player.ichorLeft += 1
+
+        # returns saying that it was played
+        return True, targets, board
+    # returns saying that it wasn't able to be played
+    return False, targets, board
+
+
+# appends this newly made card not in a class format so many can be made
+cards.append([IchorSurge, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'ichor surge', 'no cost, small ichor increase', 0, True, {'enemy': 0, 'card': 0, 'enemies': 0}])
+
+
+def Fireball(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile
+    if board[self.x][self.y]['playable']:
+        # hits the target for 20
+        targets['enemy'][0].hit(20, player)
+        # hits all the other enemies for 3
+        for enemy in targets['enemies']:
+            if enemy.id != targets['enemy'][0].id:
+                enemy.hit(3, player)
+
+        # returns saying that it was played
+        return True, targets, board
+    # returns saying that it wasn't able to be played
+    return False, targets, board
+
+
+# appends this newly made card not in a class format so many can be made
+cards.append([Fireball, pygame.image.load(str(cardRoot / 'Fireball.png')), 'fireball', 'High cost, high damage to single target, low damage to other targets', 4, True, {'enemy': 1, 'card': 0, 'enemies': 1}])

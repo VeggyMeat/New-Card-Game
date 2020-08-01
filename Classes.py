@@ -1,9 +1,18 @@
 import pygame
 from random import randint
+from Constants import *
 pygame.init()
-# sets up with and height of card
-cardWIDTH = 100
-cardHEIGHT = 150
+
+
+class Player:
+    def __init__(self, hp):
+        self.hp = hp
+        self.crippled = 0
+        self.fragile = 0
+        self.deck = []
+        self.stackCards = []
+        self.maxIchor = 5
+        self.ichorLeft = self.maxIchor
 
 
 class Card:
@@ -57,22 +66,22 @@ class Card:
         self.resizedImageSize = (int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1)
         self.resizedImage = pygame.transform.scale(self.image, self.resizedImageSize)
 
-    def use(self, board, blankBoard, ichorLeft, enemy, scaleWidth, scaleHeight, turn):
+    def use(self, board, blankBoard, targets, scaleWidth, scaleHeight, turn, player, enemies):
         # checks whether the player has enough ichor to play the card
-        if ichorLeft >= self.ichorCost:
+        if player.ichorLeft >= self.ichorCost:
             # returns different things depending on whether the card exausted, got played, or didn't after using the definiton of the card
-            used, enemy, board = self.used(self, enemy=enemy, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn)
+            used, enemy, board = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
 
             # if the card was used subtracts ichor
             if used:
-                ichorLeft -= self.ichorCost
+                player.ichorLeft -= self.ichorCost
                 if self.exhaust:
                     # returns the card should be removed from the board
-                    return 2, ichorLeft, enemy, board
+                    return 2, player.ichorLeft, enemy, board
                 # returns the card should be removed from the board and added to the deck
-                return 1, ichorLeft, enemy, board
+                return 1, player.ichorLeft, enemy, board
         # returns the card should stay on the board
-        return 0, ichorLeft, enemy, board
+        return 0, player.ichorLeft, enemy, board
 
 
 # the class the all enemies have
@@ -88,6 +97,9 @@ class Enemy:
         self.resizedX = x
         self.resizedY = y
         self.resizedImageSize = (width, height)
+
+        # a random id that should be unique (low chance of not)
+        self.id = randint(1, 1000000000000)
 
         # images of the enemy and their resized forms
         self.images = images
@@ -107,7 +119,8 @@ class Enemy:
         self.hp = hp
 
         # effects that the enemy can have
-        self.crippling = 0
+        self.crippled = 0
+        self.fragile = 0
 
         # symbols that will be drawn with the character in some circumstances
         self.symbols = []
@@ -118,7 +131,7 @@ class Enemy:
         # draws the card
         screen.blit(self.resizedImages[int(globalCounter / 10) % len(self.resizedImages)], (self.resizedX, self.resizedY))
 
-        # starts a loop and draws all the cards with a gap (needs fix doesn't scale correctly)
+        # starts a loop and draws all the cards with a gap
         counter = 0
         for symbol in self.resizedSymbols:
             screen.blit(symbol, (self.resizedX+int(counter*self.resizedSymbolSize[0]), int(self.resizedY + self.resizedImageSize[1] + self.resizedSymbolSize[1])))
@@ -126,8 +139,11 @@ class Enemy:
 
     def turn(self, turn, board):
         # reduces effects
-        if self.crippling > 0:
-            self.crippling -= 1
+        if self.crippled > 0:
+            self.crippled -= 1
+
+        if self.fragile > 0:
+            self.fragile -= 1
 
         # runs the attack definition
         board = self.attackShow(self, turn, board)
@@ -147,11 +163,19 @@ class Enemy:
             self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))
 
     # does a calculation to determine how much damage should be dealt depending on its effects
-    def hit(self, damage):
-        if self.crippling > 0:
-            self.hp -= int(damage * 1.2)
-        else:
-            self.hp -= damage
+    def hit(self, damage, aggressor):
+        if self.fragile > 0:
+            damage *= 1 + FRAGILE
+        if aggressor.crippled > 0:
+            damage *= 1 - CRIPPLED
+        self.hp -= damage
+
+    def hitting(self, damage, target):
+        if self.crippled > 0:
+            damage *= 1 + FRAGILE
+        if target.crippled > 0:
+            damage *= 1 - CRIPPLED
+        target.hp -= damage
 
 
 # an empty class used for some custom situations

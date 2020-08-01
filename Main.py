@@ -1,10 +1,9 @@
-from random import randint
 from pygame.locals import *
-import pygame
 from Cards import *
 from Enemies import *
 from Classes import *
 from Definitions import *
+from Constants import *
 from copy import deepcopy
 import time
 import keyboard
@@ -31,30 +30,29 @@ TURQUOISE = (0, 255, 255)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 
+
 # sets up the windowed screen and allowing things to resize when window size changed
 screen = pygame.display.set_mode((1920, 1080), RESIZABLE, VIDEORESIZE)
 WIDTH = 1920
 HEIGHT = 1080
-cardWIDTH = 100
-cardHEIGHT = 150
 width, height = pygame.display.get_surface().get_size()
 scaleWidth = width / WIDTH
 scaleHeight = height / HEIGHT
 
 # setting up some variables
 Open = True
-deck = []
-stackCards = deck
-maxIchor = 5
 CurrentEnemies = []
+player = Player(100)
 for x in range(5):
     Enemy1 = Enemy(enemies[0][0], enemies[0][1], enemies[0][2], enemies[0][3], enemies[0][4], enemies[0][5], enemies[0][6], enemies[0][7], enemies[0][8], enemies[0][9])
     Enemy1.resize(scaleWidth, scaleHeight)
     CurrentEnemies.append(Enemy1)
-ichorLeft = maxIchor
-hp = 100
 cardsDRAWN = 10
 previousEnemies = []
+CLICKED = False
+COUNT = {'enemy': 0, 'card': 0, 'enemies': 0}
+TARGET = {'enemy': [], 'card': [], 'enemies': []}
+ID = False
 
 # loading some images
 SPORES = pygame.transform.scale(pygame.image.load(str(symbolRoot / 'Spore.png')), (10, 10))
@@ -95,8 +93,8 @@ for x in range(4):
 for x in range(5):
     for y in range(5):
         if randint(0, 1) == 1:
-            number = randint(0, 3)
-            board[x][y]['card'] = Card(x, y, 120 * x + 50, 170 * y + 50, cards[number][0], cards[number][1], cards[number][2], cards[number][3], cards[number][4], cards[number][5], cards[number][6])
+            number = randint(5, 5)
+            board[x][y]['card'] = Card(x, y, cardGapWIDTH * x + cardSpaceWIDTH, cardGapHEIGHT * y + cardSpaceHEIGHT, cards[number][0], cards[number][1], cards[number][2], cards[number][3], cards[number][4], cards[number][5], cards[number][6])
             board[x][y]['card'].resize(scaleWidth, scaleHeight)
 
 
@@ -111,7 +109,7 @@ def move(board, spot):
         counter2 = 0
         for card in row:
             # if the card is an actual card then move it to the same place but adds the spot
-            if card['card'] != False:
+            if card['card']:
                 thisSpot = spot[counter1][counter2]
                 newBoard[(counter1+thisSpot[0]) % len(board)][(counter2+thisSpot[1]) % len(board)] = board[counter1][counter2]
             counter2 += 1
@@ -122,7 +120,7 @@ def move(board, spot):
 
 
 # will draw all things on the screen called every loop
-def Draw(random=True):
+def Draw(random=(True, ())):
     # globals in some variables
     global scaleWidth, scaleHeight, previousEnemies, screen
 
@@ -140,32 +138,32 @@ def Draw(random=True):
                 # draws a rectangle behind the card showing its playable
                 colour = FORESTGREEN
                 PLACEDCOLOUR = colour
-                pygame.draw.rect(screen, colour, (int((120 * counter1 + 45) * scaleWidth) + 1, int((170 * counter2 + 45) * scaleHeight) + 1, int((cardWIDTH + 10) * scaleWidth) + 1, int((cardHEIGHT + 10) * scaleHeight) + 1))
-                if card['card'] != False:
+                pygame.draw.rect(screen, colour, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH - 5) * scaleWidth) + 1, int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT - 5) * scaleHeight) + 1, int((cardWIDTH + 10) * scaleWidth) + 1, int((cardHEIGHT + 10) * scaleHeight) + 1))
+                if card['card']:
                     # changes the text in the card to the opposite of the background
                     oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
-                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * 120 + 50) * scaleWidth) + 1, int((counter2 * 170 + 50) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
+                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * cardGapWIDTH + cardSpaceWIDTH) * scaleWidth) + 1, int((counter2 * cardGapHEIGHT + cardSpaceHEIGHT) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
 
             if card['attacked'] > 0:
                 # blurs the colour if its playable and attacked
                 colour = RED
-                if PLACEDCOLOUR != False:
+                if PLACEDCOLOUR:
                     colour = (int((colour[0]+PLACEDCOLOUR[0]) / 2), int((colour[1]+PLACEDCOLOUR[1]) / 2), int((colour[2]+PLACEDCOLOUR[2]) / 2))
                 PLACEDCOLOUR = colour
 
                 # draws a rectangle behind the card showing its being attacked
-                pygame.draw.rect(screen, colour, (int((120 * counter1 + 45) * scaleWidth) + 1, int((170 * counter2 + 45) * scaleHeight) + 1, int((cardWIDTH + 10) * scaleWidth) + 1, int((cardHEIGHT + 10) * scaleHeight) + 1))
-                if card['card'] != False:
+                pygame.draw.rect(screen, colour, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH - 5) * scaleWidth) + 1, int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT - 5) * scaleHeight) + 1, int((cardWIDTH + 10) * scaleWidth) + 1, int((cardHEIGHT + 10) * scaleHeight) + 1))
+                if card['card']:
                     # changes the text in the card to the opposite of the background
                     oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
-                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * 120 + 50) * scaleWidth) + 1, int((counter2 * 170 + 50) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
+                    pygame.draw.rect(screen, oppositeColour, (int((counter1 * cardGapWIDTH + cardSpaceWIDTH) * scaleWidth) + 1, int((counter2 * cardGapHEIGHT + cardSpaceHEIGHT) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
 
             # draws the spores for each card
             for x in range(card['spores']):
-                screen.blit(SPORES, (int((120 * counter1 + 50 + x * 25) * scaleWidth), int((170 * counter2 + 50 + cardHEIGHT * 1.05) * scaleHeight)))
+                screen.blit(SPORES, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + x * 25) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT * 1.05) * scaleHeight)))
 
             # draws the card on the screen if its not blank
-            if card['card'] != False:
+            if card['card']:
                 card['card'].draw(screen)
             counter2 += 1
         counter1 += 1
@@ -174,14 +172,14 @@ def Draw(random=True):
     thing = ''
     for enemy in CurrentEnemies:
         thing += str(enemy.hp) + ' '
-    textSurface = myFont.render('Ichor left: ' + str(ichorLeft) + ', Turn: ' + str(turn) + ', HP: ' + str(hp) + ', Enemy HP: ' + thing, False, BLACK)
+    textSurface = myFont.render('Ichor left: ' + str(player.ichorLeft) + ', Turn: ' + str(turn) + ', HP: ' + str(player.hp) + ', Enemy HP: ' + thing, False, BLACK)
     screen.blit(textSurface, (10, height-50))
 
     # draws all the buttons on screen
     for button in buttons:
         button.draw(screen)
 
-    # draws the enemies with a gap inbetween them
+    # draws the enemies with a gap in-between them
     counter = 0
     for currentEnemy in CurrentEnemies:
         if previousEnemies != CurrentEnemies:
@@ -192,9 +190,45 @@ def Draw(random=True):
             currentEnemy.x = tempX
         currentEnemy.draw(screen, globalCounter)
 
-    # draws an arrow above something if needed
-    if random != True:
-        screen.blit(RedArrow, (random[0], random[1]))
+    # makes an item bigger if hovering over it
+    if random[0] == 'card':
+        card = board[random[1][0]][random[1][1]]
+        pygame.draw.rect(screen, WHITE, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2), int(card['card'].resizedImageSize[0] * 2), int(card['card'].resizedImageSize[1] * 2)))
+        PLACEDCOLOUR = False
+        if card['playable']:
+            # draws a rectangle behind the card showing its playable
+            colour = FORESTGREEN
+            PLACEDCOLOUR = colour
+            pygame.draw.rect(screen, colour, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2 - 10 * scaleWidth), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2 - 10 * scaleHeight), int(card['card'].resizedImageSize[0] * 2 + 20 * scaleWidth), int(card['card'].resizedImageSize[1] * 2 + 20 * scaleHeight)))
+            if card['card']:
+                # changes the text in the card to the opposite of the background
+                oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
+                pygame.draw.rect(screen, oppositeColour, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2), int(card['card'].resizedImageSize[0] * 2), int(card['card'].resizedImageSize[1] * 2)))
+
+        if card['attacked'] > 0:
+            # blurs the colour if its playable and attacked
+            colour = RED
+            if PLACEDCOLOUR != False:
+                colour = (int((colour[0] + PLACEDCOLOUR[0]) / 2), int((colour[1] + PLACEDCOLOUR[1]) / 2), int((colour[2] + PLACEDCOLOUR[2]) / 2))
+
+            # draws a rectangle behind the card showing its being attacked
+            pygame.draw.rect(screen, colour, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2 - 10 * scaleWidth), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2 - 10 * scaleHeight), int(card['card'].resizedImageSize[0] * 2 + 20 * scaleWidth), int(card['card'].resizedImageSize[1] * 2 + 20 * scaleHeight)))
+            if card['card'] != False:
+                # changes the text in the card to the opposite of the background
+                oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
+                pygame.draw.rect(screen, oppositeColour, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2), int(card['card'].resizedImageSize[0] * 2), int(card['card'].resizedImageSize[1] * 2)))
+        card = board[random[1][0]][random[1][1]]['card']
+        screen.blit(pygame.transform.scale(card.resizedImage, (int(card.resizedImageSize[0] * 2), int(card.resizedImageSize[1] * 2))), (int(card.resizedX - card.resizedImageSize[0] / 2), int(card.resizedY - card.resizedImageSize[1] / 2)))
+
+    if random[0] == 'enemy':
+        enemy = CurrentEnemies[random[1]]
+        # pygame.draw.rect(screen, WHITE, (int(enemy.resizedX - enemy.resizedImageSize[0] / 2), int(enemy.resizedY - enemy.resizedImageSize[1] / 2), int(enemy.resizedImageSize[0] * 2), int(enemy.resizedImageSize[1] * 2)))
+        screen.blit(pygame.transform.scale(enemy.resizedImages[int(globalCounter / 10) % len(enemy.resizedImages)], (enemy.resizedImageSize[0] * 2, enemy.resizedImageSize[1] * 2)), (int(enemy.resizedX - enemy.resizedImageSize[0] / 2), int(enemy.resizedY - enemy.resizedImageSize[1] / 2)))
+
+        counter = 0
+        for symbol in enemy.resizedSymbols:
+            screen.blit(symbol, (enemy.resizedX + int(counter * enemy.resizedSymbolSize[0]), int(enemy.resizedY + enemy.resizedImageSize[1] + enemy.resizedSymbolSize[1])))
+            counter += 1.2
 
     # updates screen
     pygame.display.update()
@@ -219,7 +253,7 @@ def reSize(event):
     # resizes every card
     for row in board:
         for card in row:
-            if card['card'] != False:
+            if card['card']:
                 card['card'].resize(scaleWidth, scaleHeight)
 
     # resizes all the buttons
@@ -235,11 +269,11 @@ def reSize(event):
 # is ran whenever it goes to the next turn
 def nextTurn():
     # globals in some variables
-    global turn, hp, ichorLeft, board, stackCards
+    global turn, hp, board, player
 
     # attacks for each enemy
     for currentEnemy in CurrentEnemies:
-        hp, board = currentEnemy.attack(currentEnemy, turn, board, hp)
+        player.hp, board = currentEnemy.attack(currentEnemy, turn, board, player.hp)
 
     # increases turn counter
     turn += 1
@@ -248,23 +282,23 @@ def nextTurn():
     counter = 0
     for row in board:
         for card in row:
-            hp -= card['attacked']
+            player.hp -= card['attacked']
             card['attacked'] = 0
-            if card['card'] != False:
-                stackCards.append(card['card'])
+            if card['card']:
+                player.stackCards.append(card['card'])
                 counter += 1
                 card['card'] = False
 
     # draws cards out of the deck and places them on the board
-    for x in range(len(stackCards)):
-        board, stackCards = drawCard(board, stackCards)
+    for x in range(len(player.stackCards)):
+        board, player.stackCards = drawCard(board, player.stackCards)
 
     # gives each enemy his turn showing where he will attack
     for currentEnemy in CurrentEnemies:
         board = currentEnemy.turn(turn, board)
 
     # resets ichor and reSizes for any new cards or enemies
-    ichorLeft = maxIchor
+    player.ichorLeft = player.maxIchor
     event = Mouse()
     event.w, event.h = width, height
     reSize(event)
@@ -273,76 +307,80 @@ def nextTurn():
 # gets run to check if anything has been clicked
 def clicked():
     # globals in some variables
-    global ichorLeft, board, CurrentEnemies, globalCounter, Open, scaleWidth, scaleHeight, SPORES, width, height, screen, RedArrow, random
+    global player, board, CurrentEnemies, globalCounter, Open, scaleWidth, scaleHeight, SPORES, width, height, screen, RedArrow, random, CLICKED, ID, TARGET, COUNT
 
     # updates mouse and sets a variable checking if i get a response
     pressed = pygame.mouse.get_pressed()
     location = pygame.mouse.get_pos()
-    response = 'a'
 
     # sets up a loop and goes through each card
+    counter1 = 0
     for row in board:
+        counter2 = 0
         for card in row:
             # checks if the spot is filled by a card
-            if card['card'] != False:
+            if card['card']:
                 # checks if someone has hovered over the card
                 if card['card'].resizedX < location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
                     if card['card'].resizedY < location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
-                        # gets ready to draw a red arrow over the highlited card
-                        random = (card['card'].resizedX + int(card['card'].resizedImageSize[0] / 2)- int(12*scaleWidth), card['card'].resizedY - int(30*scaleHeight))
-
+                        # gets ready to draw the card bigger
+                        random = ('card', (counter1, counter2))
                         # checks if the button has been pressed
                         if pressed[0]:
-                            # notes down the id of the card so it can be removed if it isn't played
-                            ID = card['card'].id
+                            if not CLICKED:
+                                CLICKED = card
+                                ID = card['card'].id
+                                print('harrr')
+                                if CLICKED['card'].select['enemies'] == 1:
+                                    TARGET['enemies'] = CurrentEnemies
+                                    COUNT['enemies'] += 1
+                            elif COUNT['card'] != CLICKED['card'].select:
+                                TARGET['card'].append(card)
+            counter2 += 1
+        counter1 += 1
+    if CLICKED:
+        if COUNT == CLICKED['card'].select:
+            response, player.ichorLeft, TARGET, board = CLICKED['card'].use(board, blankBoard, TARGET, scaleWidth, scaleHeight, turn, player, CurrentEnemies)
+            # loops through each card
+            counter1 = 0
+            for row in board:
+                counter2 = 0
+                for card in row:
+                    # if there is an actual card there than it checks its id to match the one taken previously and saves its location
+                    if card['card']:
+                        if card['card'].id == ID:
+                            location = (counter1, counter2)
+                    counter2 += 1
+                counter1 += 1
 
-                            # gets some variables ready for the loop which is ran if the card needs to know what thing to select
-                            enemy = CurrentEnemies
-                            escape = False
-                            leave = False
-                            random = True
-                            while card['card'].select:
-                                # imitates the main loop inside of this so the screen still updates
-                                clock.tick(60)
-                                Draw(random)
-                                random = True
-                                globalCounter += 1
-                                pressed = pygame.mouse.get_pressed()
-                                location = pygame.mouse.get_pos()
-                                # checks if one of the enemies gets hovered over and selected
-                                for currentEnemy in CurrentEnemies:
-                                    if currentEnemy.resizedX < location[0] < currentEnemy.resizedX + currentEnemy.resizedImageSize[0]:
-                                        if currentEnemy.resizedY < location[1] < currentEnemy.resizedY + currentEnemy.resizedImageSize[1]:
-                                            random = (currentEnemy.resizedX + int(currentEnemy.resizedImageSize[0] / 2)- int(12*scaleWidth), currentEnemy.resizedY - int(30*scaleHeight))
-                                            if pressed[0]:
-                                                enemy = currentEnemy
-                                                leave = True
+            board[location[0]][location[1]]['card'] = CLICKED['card']
 
-                                # looks through the pygame events
-                                for event in pygame.event.get():
-                                    # checks if the person has tried to close the window and closes the code
-                                    if event.type == QUIT:
-                                        Open = False
-                                    # runs reSize when the window has been resized
-                                    elif event.type == VIDEORESIZE:
-                                        SPORES = pygame.transform.scale(SPORES, (int(10 * scaleWidth), int(10 * scaleHeight)))
-                                        width, height, scaleWidth, scaleHeight, screen = reSize(event)
+            # based on the card's response remove the card or remove and add it back to the deck
+            if response == 1:
+                player.stackCards.append(board[location[0]][location[1]]['card'])
+            if response >= 1:
+                board[location[0]][location[1]]['card'] = False
+            TARGET = {'enemy': 0, 'card': 0, 'enemies': 0}
+            CLICKED = False
+            COUNT = {'enemy': 0, 'card': 0, 'enemies': 0}
 
-                                # if the escape key has been pressed it leaves the loop
-                                if pygame.key.get_pressed()[K_ESCAPE]:
-                                    escape = True
+    # if the escape key has been pressed it leaves the
+    if pygame.key.get_pressed()[K_ESCAPE]:
+        CLICKED = False
 
-                                # breaks the loop if one of the conditions is met
-                                if not Open or escape or leave:
-                                    break
-
-                            # if the game is still true and the playing of the card hasn't been cancelled then play the card
-                            if Open and not escape:
-                                response, ichorLeft, enemy, board = card['card'].use(board, blankBoard, ichorLeft, enemy, scaleWidth, scaleHeight, turn)
-
-                                # tries to stop someone accidentally selecting a card immediately after because of holding down the mouse
-                                time.sleep(.15)
-                            break
+    # shows if you have selected an enemy
+    counter = 0
+    for currentEnemy in CurrentEnemies:
+        if currentEnemy.resizedX < location[0] < currentEnemy.resizedX + currentEnemy.resizedImageSize[0]:
+            if currentEnemy.resizedY < location[1] < currentEnemy.resizedY + currentEnemy.resizedImageSize[1]:
+                random = ('enemy', counter)
+                if pressed[0]:
+                    if CLICKED:
+                        if CLICKED['card'].select['enemy'] != COUNT['enemy']:
+                            TARGET['enemy'].append(currentEnemy)
+                            COUNT['enemy'] += 1
+                            print('hmm')
+        counter += 1
 
     # checks if any of the buttons have been pressed and if so calls its definition
     if pressed[0]:
@@ -353,40 +391,22 @@ def clicked():
                     # tries to stop someone accidentally selecting a button immediately after because of holding down the mouse
                     time.sleep(.15)
 
-    # if the card was actually played then this runs
-    if response != 'a':
-        # loops through each card
-        counter1 = 0
-        for row in board:
-            counter2 = 0
-            for card in row:
-                # if there is an actual card there than it checks its id to match the one taken previously and saves its location
-                if card['card'] != False:
-                    if card['card'].id == ID:
-                        location = (counter1, counter2)
-                counter2 += 1
-            counter1 += 1
-
-        # based on the card's response remove the card or remove and add it back to the deck
-        if response == 1:
-            stackCards.append(board[location[0]][location[1]]['card'])
-        if response >= 1:
-            board[location[0]][location[1]]['card'] = False
-
 
 nextTurnButton = Button(WIDTH-100, HEIGHT-20, 100, 20, nextTurn, RED)
 buttons = [nextTurnButton]
 nextTurn()
-random = True
+random = (False, ())
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
     globalCounter += 1
+
     # gets the location of the mouse and whether the mouse has been pressed
     for event in pygame.event.get():
         # checks if the person has tried to close the window and closes the code
         if event.type == QUIT:
             Open = False
+
         # runs reSize when the window has been resized
         elif event.type == VIDEORESIZE:
             width, height, scaleWidth, scaleHeight, screen = reSize(event)
@@ -397,5 +417,5 @@ while Open:
         counter += 1
     clicked()
     Draw(random)
-    random = True
+    random = (False, ())
 pygame.quit()

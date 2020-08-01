@@ -1,4 +1,5 @@
 from random import randint
+from Constants import *
 
 
 # some code to shuffle a deck of cards
@@ -36,7 +37,7 @@ def drawCard(board, stackCards):
         if not board[cords[0]][cords[1]]['card']:
             # places the card and resize it to that spot
             board[cords[0]][cords[1]]['card'] = stackCards[0]
-            board[cords[0]][cords[1]]['card'].x, board[cords[0]][cords[1]]['card'].y, board[cords[0]][cords[1]]['card'].screenX, board[cords[0]][cords[1]]['card'].screenY = cords[0], cords[1], cords[0] * 120 + 50, cords[1] * 170 + 50
+            board[cords[0]][cords[1]]['card'].x, board[cords[0]][cords[1]]['card'].y, board[cords[0]][cords[1]]['card'].screenX, board[cords[0]][cords[1]]['card'].screenY = cords[0], cords[1], cords[0] * cardGapWIDTH + cardSpaceWIDTH, cords[1] * cardGapHEIGHT + cardSpaceHEIGHT
             stackCards.pop(0)
             break
     return board, stackCards

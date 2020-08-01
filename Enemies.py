@@ -3,6 +3,7 @@ from copy import deepcopy
 import pygame
 from Classes import Enemy
 from pathlib import Path
+from Constants import *
 enemies = []
 # the root of where the images are
 enemyRoot = Path('Images/Enemies/')
@@ -46,7 +47,7 @@ def MushroomAttack(self, turn, board, hp):
         # removes the blow up symbol
         self.symbols.remove(sporeDetonation)
 
-        # loops through each card and blows up the spores
+        # loops through each card and deals the numbers of spores damage
         for row in board:
             for card in row:
                 hp -= card['spores']
