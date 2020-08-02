@@ -1,10 +1,8 @@
-from random import randint
+from Relics import *
+from Classes import *
 from copy import deepcopy
-import pygame
 from Definitions import shuffle
 from pathlib import Path
-from Constants import *
-from Classes import Card
 # sets up some variables
 cards = []
 cardRoot = Path("Images/Cards/")
@@ -61,8 +59,8 @@ def StrikeAtTheHeart(self, targets, board, blankBoard, scaleWidth, scaleHeight, 
     # checks if the card is on a playable tile
     if board[self.x][self.y]['playable']:
         # applies its effects to the target
-        target.crippled += 2
-        target.hit(15, player)
+        targets['enemy'][0].crippled += 2
+        targets['enemy'][0].hit(15, player)
 
         # returns saying that it was played
         return True, targets, board
@@ -78,7 +76,7 @@ def SneakAttack(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn,
     # checks if the card is on a playable tile or if its turn 1
     if board[self.x][self.y]['playable'] or turn == 1:
         # applies damage to the target
-        target.hit(5, player)
+        targets['enemy'][0].hit(5, player)
 
         # returns saying that it was played
         return True, targets, board
@@ -92,9 +90,9 @@ cards.append([SneakAttack, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.pn
 
 def Execute(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile or the target is able to be one shot by the card
-    if board[self.x][self.y]['playable'] or target.hp <= 10:
+    if board[self.x][self.y]['playable'] or targets['enemy'][0].hp <= 10:
         # applies damage to the target
-        target.hit(10, player)
+        targets['enemy'][0].hit(10, player)
 
         # returns saying that it was played
         return True, targets, board
@@ -140,3 +138,58 @@ def Fireball(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, pl
 
 # appends this newly made card not in a class format so many can be made
 cards.append([Fireball, pygame.image.load(str(cardRoot / 'Fireball.png')), 'fireball', 'High cost, high damage to single target, low damage to other targets', 4, True, {'enemy': 1, 'card': 0, 'enemies': 1}])
+
+
+def Mechanise(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile
+    if board[self.x][self.y]['playable']:
+        player.relics.append(Relic(relics[0][0], relics[0][1], relics[0][2]))
+        # returns saying that it was played
+        return True, targets, board
+        # returns saying that it wasn't able to be played
+    return False, targets, board
+
+
+# appends this newly made card not in a class format so many can be made
+cards.append([Mechanise, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'mechanise', 'Apply block equal to your health at a random attacked square and lose 1 max HP at the end of each turn', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0}])
+
+
+def VirulentPlague(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile
+    if board[self.x][self.y]['playable']:
+        for enemy1 in targets['enemies']:
+            for enemy2 in targets['enemies']:
+                enemy2.poison += 3
+
+    for enemy in targets['enemies']:
+        enemy.hp -= enemy.poison
+        # returns saying that it was played
+        return True, targets, board
+        # returns saying that it wasn't able to be played
+    return False, targets, board
+
+
+# appends this newly made card not in a class format so many can be made
+cards.append([VirulentPlague, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'virulent plague', 'Medium Ichor, Large AOE, legendary spell', 2, True, {'enemy': 0, 'card': 0, 'enemies': 0}])
+
+
+def FinalStand(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # totals damage
+    total = 0
+    for row in board:
+        for card in row:
+            for id in card['attacked']:
+                total += card['attacked'][str(id)]
+
+    # checks if the card is on a playable tile or if this card prevents death
+    if board[self.x][self.y]['playable'] or player.hp <= total <= player.hp + 50:
+        player.totalBlock += 50
+        # returns saying that it was played
+        return True, targets, board
+        # returns saying that it wasn't able to be played
+    return False, targets, board
+    # checks if the card is on a playable tile
+
+
+# appends this newly made card not in a class format so many can be made
+cards.append([FinalStand, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'final stand', 'Apply a total 50 block to all slot Opportunity, it prevents lethal', 1, True, {'enemy': 0, 'card': 0, 'enemies': 0}])

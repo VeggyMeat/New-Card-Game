@@ -1,18 +1,29 @@
+from Constants import *
 import pygame
 from random import randint
-from Constants import *
 pygame.init()
+
+
+class Relic:
+    def __init__(self, definiton, activated, trueRelic):
+        self.definition = definiton
+        self.activated = activated
+        self.trueRelic = trueRelic
 
 
 class Player:
     def __init__(self, hp):
         self.hp = hp
+        self.maxHP = hp
         self.crippled = 0
         self.fragile = 0
         self.deck = []
         self.stackCards = []
         self.maxIchor = 5
         self.ichorLeft = self.maxIchor
+        self.totalBlock = 0
+        self.relics = []
+        self.poison = 0
 
 
 class Card:
@@ -69,19 +80,19 @@ class Card:
     def use(self, board, blankBoard, targets, scaleWidth, scaleHeight, turn, player, enemies):
         # checks whether the player has enough ichor to play the card
         if player.ichorLeft >= self.ichorCost:
-            # returns different things depending on whether the card exausted, got played, or didn't after using the definiton of the card
-            used, enemy, board = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
+            # returns different things depending on whether the card exhausted, got played, or didn't after using the definiton of the card
+            used, targets, board = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
 
             # if the card was used subtracts ichor
             if used:
                 player.ichorLeft -= self.ichorCost
                 if self.exhaust:
                     # returns the card should be removed from the board
-                    return 2, player.ichorLeft, enemy, board
+                    return 2, player.ichorLeft, targets, board
                 # returns the card should be removed from the board and added to the deck
-                return 1, player.ichorLeft, enemy, board
+                return 1, player.ichorLeft, targets, board
         # returns the card should stay on the board
-        return 0, player.ichorLeft, enemy, board
+        return 0, player.ichorLeft, targets, board
 
 
 # the class the all enemies have
@@ -121,6 +132,7 @@ class Enemy:
         # effects that the enemy can have
         self.crippled = 0
         self.fragile = 0
+        self.poison = 0
 
         # symbols that will be drawn with the character in some circumstances
         self.symbols = []

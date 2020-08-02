@@ -1,12 +1,12 @@
-from pygame.locals import *
 from Cards import *
 from Enemies import *
 from Classes import *
 from Definitions import *
 from Constants import *
+from Relics import *
+from pygame.locals import *
 from copy import deepcopy
 import time
-import keyboard
 globalCounter = 0
 turn = 0
 
@@ -60,7 +60,9 @@ RedArrow = pygame.image.load(str(symbolRoot / 'RedArrow.png'))
 
 
 # all the blank templates for moving cards, the board
-blankCard = {'card': False, 'playable': False, 'attacked': 0, 'spores': 0, 'block': 0}
+blankCard = {'card': False, 'playable': False, 'attacked': {}, 'spores': 0, 'block': 0}
+for currentEnemy in CurrentEnemies:
+    blankCard['attacked'][str(currentEnemy.id)] = 0
 
 blankBoard = [
               [deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard), deepcopy(blankCard)],
@@ -93,30 +95,9 @@ for x in range(4):
 for x in range(5):
     for y in range(5):
         if randint(0, 1) == 1:
-            number = randint(5, 5)
+            number = randint(6, 6)
             board[x][y]['card'] = Card(x, y, cardGapWIDTH * x + cardSpaceWIDTH, cardGapHEIGHT * y + cardSpaceHEIGHT, cards[number][0], cards[number][1], cards[number][2], cards[number][3], cards[number][4], cards[number][5], cards[number][6])
             board[x][y]['card'].resize(scaleWidth, scaleHeight)
-
-
-# code to allow two arrays to be entered with one being the board and the other where each card moves on a co-ordinate system and moves each one and allows them to loop
-def move(board, spot):
-    # makes a blank board
-    newBoard = deepcopy(blankBoard)
-
-    # starts a loop with some counters
-    counter1 = 0
-    for row in board:
-        counter2 = 0
-        for card in row:
-            # if the card is an actual card then move it to the same place but adds the spot
-            if card['card']:
-                thisSpot = spot[counter1][counter2]
-                newBoard[(counter1+thisSpot[0]) % len(board)][(counter2+thisSpot[1]) % len(board)] = board[counter1][counter2]
-            counter2 += 1
-        counter1 += 1
-
-    # returns the newly made board
-    return newBoard
 
 
 # will draw all things on the screen called every loop
@@ -144,7 +125,11 @@ def Draw(random=(True, ())):
                     oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
                     pygame.draw.rect(screen, oppositeColour, (int((counter1 * cardGapWIDTH + cardSpaceWIDTH) * scaleWidth) + 1, int((counter2 * cardGapHEIGHT + cardSpaceHEIGHT) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
 
-            if card['attacked'] > 0:
+            tempAttack = 0
+            for currentEnemy in CurrentEnemies:
+                tempAttack += card['attacked'][str(currentEnemy.id)]
+
+            if tempAttack > 0:
                 # blurs the colour if its playable and attacked
                 colour = RED
                 if PLACEDCOLOUR:
@@ -205,7 +190,11 @@ def Draw(random=(True, ())):
                 oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
                 pygame.draw.rect(screen, oppositeColour, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2), int(card['card'].resizedImageSize[0] * 2), int(card['card'].resizedImageSize[1] * 2)))
 
-        if card['attacked'] > 0:
+        tempAttack = 0
+        for currentEnemy in CurrentEnemies:
+            tempAttack += card['attacked'][str(currentEnemy.id)]
+
+        if tempAttack > 0:
             # blurs the colour if its playable and attacked
             colour = RED
             if PLACEDCOLOUR != False:
@@ -271,9 +260,29 @@ def nextTurn():
     # globals in some variables
     global turn, hp, board, player
 
+    # calls any relics with the tag endTurn
+    for relic in player.relics:
+        call = False
+        for item in relic.activated:
+            if item == 'endTurn':
+                call = True
+                break
+        if call:
+            board, player = relic.definition(board, player)
+
     # attacks for each enemy
     for currentEnemy in CurrentEnemies:
         player.hp, board = currentEnemy.attack(currentEnemy, turn, board, player.hp)
+
+    # does the poison stuff
+    for currentEnemy in CurrentEnemies:
+        if currentEnemy.poison > 0:
+            currentEnemy.hp -= round(currentEnemy.poison / 2)
+            currentEnemy.poison -= 1
+
+    if player.poison > 0:
+        player.hp -= round(player.poison / 2)
+        player.poison -= 1
 
     # increases turn counter
     turn += 1
@@ -282,12 +291,22 @@ def nextTurn():
     counter = 0
     for row in board:
         for card in row:
-            player.hp -= card['attacked']
-            card['attacked'] = 0
+            if card['block'] > 0:
+                print(card['block'], card['attacked'])
+            for id in card['attacked']:
+                if card['attacked'][str(id)] - card['block'] > 0:
+                    player.totalBlock -= card['attacked'][id] - card['block']
+                card['attacked'][str(id)] = 0
+            card['block'] = 0
             if card['card']:
                 player.stackCards.append(card['card'])
                 counter += 1
                 card['card'] = False
+    
+    # removes player block
+    if player.totalBlock < 0:
+        player.hp += player.totalBlock
+    player.totalBlock = 0
 
     # draws cards out of the deck and places them on the board
     for x in range(len(player.stackCards)):
@@ -323,19 +342,19 @@ def clicked():
                 # checks if someone has hovered over the card
                 if card['card'].resizedX < location[0] < card['card'].resizedX + card['card'].resizedImageSize[0]:
                     if card['card'].resizedY < location[1] < card['card'].resizedY + card['card'].resizedImageSize[1]:
-                        # gets ready to draw the card bigger
-                        random = ('card', (counter1, counter2))
                         # checks if the button has been pressed
                         if pressed[0]:
                             if not CLICKED:
                                 CLICKED = card
                                 ID = card['card'].id
-                                print('harrr')
                                 if CLICKED['card'].select['enemies'] == 1:
                                     TARGET['enemies'] = CurrentEnemies
                                     COUNT['enemies'] += 1
                             elif COUNT['card'] != CLICKED['card'].select:
                                 TARGET['card'].append(card)
+                        else:
+                            # gets ready to draw the card bigger
+                            random = ('card', (counter1, counter2))
             counter2 += 1
         counter1 += 1
     if CLICKED:
@@ -360,7 +379,7 @@ def clicked():
                 player.stackCards.append(board[location[0]][location[1]]['card'])
             if response >= 1:
                 board[location[0]][location[1]]['card'] = False
-            TARGET = {'enemy': 0, 'card': 0, 'enemies': 0}
+            TARGET = {'enemy': [], 'card': [], 'enemies': []}
             CLICKED = False
             COUNT = {'enemy': 0, 'card': 0, 'enemies': 0}
 
@@ -379,7 +398,6 @@ def clicked():
                         if CLICKED['card'].select['enemy'] != COUNT['enemy']:
                             TARGET['enemy'].append(currentEnemy)
                             COUNT['enemy'] += 1
-                            print('hmm')
         counter += 1
 
     # checks if any of the buttons have been pressed and if so calls its definition

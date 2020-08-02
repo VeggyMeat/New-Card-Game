@@ -1,9 +1,6 @@
 from random import randint
-from copy import deepcopy
 import pygame
-from Classes import Enemy
 from pathlib import Path
-from Constants import *
 enemies = []
 # the root of where the images are
 enemyRoot = Path('Images/Enemies/')
@@ -18,19 +15,19 @@ sporeDetonation = pygame.image.load(str(symbolRoot / 'SporeDetonation.png'))
 
 def MushroomShow(self, turn, board):
     # adds a headbut to a random tile
-    board[randint(0, 4)][randint(0, 4)]['attacked'] += 1
+    board[randint(0, 4)][randint(0, 4)]['attacked'][str(self.id)] += 1
 
     # gets a probability
     number = randint(1, 4)
 
     # depending on the probability does anywhere from 1-3 headbutts and 0-4 spores
     if number == 1:
-        board[randint(0, 4)][randint(0, 4)]['attacked'] += 1
+        board[randint(0, 4)][randint(0, 4)]['attacked'][str(self.id)] += 1
     else:
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
     if number <= 3:
-        board[randint(0, 4)][randint(0, 4)]['attacked'] += 1
+        board[randint(0, 4)][randint(0, 4)]['attacked'][str(self.id)] += 1
     else:
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
         board[randint(0, 4)][randint(0, 4)]['spores'] += 1
