@@ -24,6 +24,7 @@ class Player:
         self.totalBlock = 0
         self.relics = []
         self.poison = 0
+        self.gold = 0
 
 
 class Card:

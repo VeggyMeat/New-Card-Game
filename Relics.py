@@ -4,7 +4,7 @@ relics = []
 # relics
 
 
-def MechanizeRelic(board, player):
+def MechaniseRelic(board, player, enemies):
     attackedSquares = []
     counter1 = 0
     for row in board:
@@ -25,4 +25,12 @@ def MechanizeRelic(board, player):
     return board, player
 
 
-relics.append([MechanizeRelic, ['endTurn'], False])
+relics.append([MechaniseRelic, ['endTurn'], False])
+
+
+def Demonfire(board, player, enemies):
+    for enemy in enemies:
+        enemy.hp -= 25
+
+
+relics.append([Demonfire, ['endTurn'], False])

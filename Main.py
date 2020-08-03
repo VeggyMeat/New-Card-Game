@@ -359,7 +359,7 @@ def clicked():
         counter1 += 1
     if CLICKED:
         if COUNT == CLICKED['card'].select:
-            response, player.ichorLeft, TARGET, board = CLICKED['card'].use(board, blankBoard, TARGET, scaleWidth, scaleHeight, turn, player, CurrentEnemies)
+            response, TARGET, board, player = CLICKED['card'].use(board, blankBoard, TARGET, scaleWidth, scaleHeight, turn, player, CurrentEnemies)
             # loops through each card
             counter1 = 0
             for row in board:
@@ -414,11 +414,21 @@ nextTurnButton = Button(WIDTH-100, HEIGHT-20, 100, 20, nextTurn, RED)
 buttons = [nextTurnButton]
 nextTurn()
 random = (False, ())
+previousHealth = player.hp
 while Open:
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
     globalCounter += 1
-
+    if previousHealth > player.hp:
+        previousHealth = player.hp
+        for relic in player.relics:
+            call = False
+            for item in relic.activated:
+                if item == 'takeDamage':
+                    call = True
+                    break
+            if call:
+                board, player = relic.definition(board, player)
     # gets the location of the mouse and whether the mouse has been pressed
     for event in pygame.event.get():
         # checks if the person has tried to close the window and closes the code
