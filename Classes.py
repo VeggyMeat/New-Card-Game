@@ -5,10 +5,15 @@ pygame.init()
 
 
 class Relic:
-    def __init__(self, definiton, activated, trueRelic):
+    def __init__(self, definiton, start, activated, trueRelic, name, description):
         self.definition = definiton
         self.activated = activated
+        self.start = start
         self.trueRelic = trueRelic
+        self.variable1 = 0
+        self.variable2 = 0
+        self.name = name
+        self.description = description
 
 
 class Player:
@@ -25,6 +30,18 @@ class Player:
         self.relics = []
         self.poison = 0
         self.gold = 0
+        self.nextMana = self.maxIchor
+        self.boltDamage = 5
+        self.healingMultiplier = 1
+        self.poisonMultiplier = 1
+
+    def heal(self, health):
+        self.hp += int(health * self.healingMultiplier)
+
+    def hit(self, damage):
+        if self.fragile > 0:
+            damage *= 1 + FRAGILE
+        return int(damage)
 
 
 class Card:
@@ -82,18 +99,18 @@ class Card:
         # checks whether the player has enough ichor to play the card
         if player.ichorLeft >= self.ichorCost:
             # returns different things depending on whether the card exhausted, got played, or didn't after using the definiton of the card
-            used, targets, board = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
+            used, targets, board, player = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
 
             # if the card was used subtracts ichor
             if used:
                 player.ichorLeft -= self.ichorCost
                 if self.exhaust:
                     # returns the card should be removed from the board
-                    return 2, player.ichorLeft, targets, board
+                    return 2, targets, board, player, self
                 # returns the card should be removed from the board and added to the deck
-                return 1, player.ichorLeft, targets, board
+                return 1, targets, board, player, self
         # returns the card should stay on the board
-        return 0, player.ichorLeft, targets, board
+        return 0, targets, board, player, self
 
 
 # the class the all enemies have
@@ -129,11 +146,13 @@ class Enemy:
 
         # the enemy's hp
         self.hp = hp
+        self.maxHp = hp
 
         # effects that the enemy can have
         self.crippled = 0
         self.fragile = 0
         self.poison = 0
+        self.block = 0
 
         # symbols that will be drawn with the character in some circumstances
         self.symbols = []
@@ -176,11 +195,18 @@ class Enemy:
             self.resizedImages.append(pygame.transform.scale(image, self.resizedImageSize))
 
     # does a calculation to determine how much damage should be dealt depending on its effects
-    def hit(self, damage, aggressor):
+    def hit(self, damage, aggressor, piercing):
         if self.fragile > 0:
             damage *= 1 + FRAGILE
         if aggressor.crippled > 0:
             damage *= 1 - CRIPPLED
+        if not piercing:
+            if damage > self.block:
+                damage -= self.block
+                self.block = 0
+            else:
+                self.block -= damage
+                damage = 0
         self.hp -= damage
 
     def hitting(self, damage, target):
@@ -189,6 +215,7 @@ class Enemy:
         if target.crippled > 0:
             damage *= 1 - CRIPPLED
         target.hp -= damage
+        return target
 
 
 # an empty class used for some custom situations
