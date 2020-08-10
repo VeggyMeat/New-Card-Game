@@ -13,7 +13,7 @@ turn = 0
 # sets up pygame
 pygame.init()
 pygame.font.init()
-myFont = pygame.font.SysFont('sitkasmallsitkatextbolditalicsitkasubheadingbolditalicsitkaheadingbolditalicsitkadisplaybolditalicsitkabannerbolditalic', 30, False, False)
+myFont = pygame.font.SysFont('sitkasmallsitkatextbolditalicsitkasubheadingbolditalicsitkaheadingbolditalicsitkadisplaybolditalicsitkabannerbolditalic', 20, False, False)
 
 # sets up pygame's clock system
 clock = pygame.time.Clock()
@@ -26,7 +26,7 @@ GREEN = (0, 255, 0)
 FORESTGREEN = (1, 68, 33)
 BLUE = (0, 0, 255)
 PURPLE = (255, 0, 255)
-TURQUOISE = (0, 255, 255)
+TURQUOISE = (64, 224, 248)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 GRAY = (175, 175, 175)
@@ -57,7 +57,6 @@ ID = False
 
 # loading some images
 SPORES = pygame.transform.scale(pygame.image.load(str(symbolRoot / 'Spore.png')), (10, 10))
-RedArrow = pygame.image.load(str(symbolRoot / 'RedArrow.png'))
 
 
 # all the blank templates for moving cards, the board
@@ -94,7 +93,7 @@ for x in range(4):
             break
 
 for id in cards:
-    player.allCards.append(id)
+    player.allCards.append('enhanced dna')
 
 # sets up some random cards
 for x in range(60):
@@ -133,9 +132,23 @@ def Draw(random=(True, ())):
                     oppositeColour = (255 - colour[0], 255 - colour[1], 255 - colour[2])
                     pygame.draw.rect(screen, oppositeColour, (int((counter1 * cardGapWIDTH + cardSpaceWIDTH) * scaleWidth) + 1, int((counter2 * cardGapHEIGHT + cardSpaceHEIGHT) * scaleHeight) + 1, int(cardWIDTH * scaleWidth) + 1, int(cardHEIGHT * scaleHeight) + 1))
 
+            total = 0
+            for id in card['attacked']:
+                total += card['attacked'][id]
+
+            if total > 0:
+                textSurface = myFont.render(str(total), False, RED)
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 20) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
+
+            if card['block'] > 0:
+                textSurface = myFont.render(str(card['block']), False, TURQUOISE)
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 50) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
+
             # draws the spores for each card
-            for x in range(card['spores']):
-                screen.blit(SPORES, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + x * 25) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT * 1.05) * scaleHeight)))
+            if card['spores'] > 0:
+                screen.blit(SPORES, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth + 20), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 7) * scaleHeight)))
+                textSurface = myFont.render(str(card['spores']), False, GREEN)
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
 
             # draws the card on the screen if its not blank
             if card['card']:
@@ -169,20 +182,6 @@ def Draw(random=(True, ())):
     if random[0] == 'card':
         card = board[random[1][0]][random[1][1]]
         pygame.draw.rect(screen, WHITE, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2), int(card['card'].resizedImageSize[0] * 2), int(card['card'].resizedImageSize[1] * 2)))
-
-        #
-        big = False
-        targets = []
-        """try:
-            if card['card'].used(card['card'], targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)[0]:
-                big = True
-        except:
-            big = True
-        """
-        if big:
-            pass
-            #pygame.draw.rect(screen, GRAY, (int(card['card'].resizedX - card['card'].resizedImageSize[0] / 2 - 15 * scaleWidth), int(card['card'].resizedY - card['card'].resizedImageSize[1] / 2 - 15 * scaleHeight), int(card['card'].resizedImageSize[0] * 2 + 30 * scaleWidth), int(card['card'].resizedImageSize[1] * 2 + 30 * scaleHeight)))
-
         if card['playable']:
             # draws a rectangle behind the card showing its playable
             colour = FORESTGREEN
@@ -223,7 +222,6 @@ def reSize(event):
 
     # resizes a couple of images
     SPORES = pygame.transform.scale(SPORES, (int(10 * scaleWidth), int(10 * scaleHeight)))
-    RedArrow = pygame.transform.scale(RedArrow, (int(25 * scaleWidth), int(25 * scaleHeight)))
 
     # resizes every card
     for row in board:
@@ -263,6 +261,7 @@ def nextTurn():
 
     # regular poison
     do = True
+    player.discard = True
     for relic in player.relics:
         if relic.name == 'witch doctors herbs':
             do = False
@@ -300,6 +299,7 @@ def nextTurn():
                     player = enemy.hitting(card['attacked'][str(enemy.id)], player)
                 else:
                     card['block'] -= card['attacked'][str(enemy.id)]
+                card['attacked'][str(enemy.id)] = 0
             if card['card']:
                 player.stackCards.append(card['card'])
                 counter += 1
@@ -307,7 +307,7 @@ def nextTurn():
 
     play = True
     for relic in player.relics:
-        if relic.name == 'storm of shields relic':
+        if relic.name == 'defencive stance relic':
             play = False
             break
 
@@ -373,7 +373,7 @@ def clicked():
                 if screenX < location[0] < screenX + cardWIDTH * scaleWidth:
                     if screenY < location[1] < screenY + cardHEIGHT * scaleHeight:
                         if CLICKED['card'].select['spot'] != COUNT['spot']:
-                            TARGET['spot'].append([card, counter1, counter2])
+                            TARGET['spot'].append([counter1, counter2])
                             COUNT['spot'] += 1
                 counter2 += 1
             counter1 += 1

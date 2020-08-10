@@ -34,6 +34,8 @@ class Player:
         self.boltDamage = 5
         self.healingMultiplier = 1
         self.poisonMultiplier = 1
+        self.evolvingParasite = 3
+        self.discard = False
 
     def heal(self, health):
         self.hp += int(health * self.healingMultiplier)

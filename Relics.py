@@ -114,7 +114,7 @@ def WitchDoctorsHerbs(self, board, player, enemies, tag, relics):
 relics['witch doctors herbs'] = [WitchDoctorsHerbs, Blank, ['endTurn'], True, 'which doctors herbs', 'deal full poison damage but half stacks per turn']
 
 
-def StormOfShieldsRelic(self, board, player, enemies, tag, relics):
+def DefenciveStanceRelic(self, board, player, enemies, tag, relics):
     blockCards = []
     counter1 = 0
     for row in board:
@@ -136,4 +136,14 @@ def StormOfShieldsRelic(self, board, player, enemies, tag, relics):
     return board, player, enemies
 
 
-relics['storm of shields relic'] = [StormOfShieldsRelic, Blank, ['endTurn'], False, 'storm of shields relic', 'Only lose 10 block at the end of your turn.']
+relics['defencive stance relic'] = [DefenciveStanceRelic, Blank, ['endTurn'], False, 'defencive stance relic', 'Only lose 10 block at the end of your turn.']
+
+
+def BurningHeart(self, board, player, enemies, tag, relics):
+    board, player.stackCards = drawCard(board, player.stackCards)
+    player.hp -= 1
+
+    return board, player, enemies
+
+
+relics['burning heart'] = [BurningHeart, Blank, ['startTurn'], True, 'burning heart', 'Take 1 damage at the beginning of every turn. Draw 1 extra card per turn']

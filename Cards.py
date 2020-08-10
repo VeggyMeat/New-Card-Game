@@ -9,6 +9,7 @@ cardRoot = Path("Images/Cards/")
 
 # cards
 
+
 def LuckOfTheDice(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile
     if board[self.x][self.y]['playable']:
@@ -51,7 +52,7 @@ def LuckOfTheDice(self, targets, board, blankBoard, scaleWidth, scaleHeight, tur
 
 
 # appends this newly made card not in a class format so many can be made
-cards['luck of the dice'] = [LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'usable once a combat which randomly moves all cards, playable positions and where the enemies will attack, for no ichor', 0, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['luck of the dice'] = [LuckOfTheDice, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'luck of the dice', 'Randomize all cards positions, attacks positions and playable card position ', 0, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def StrikeAtTheHeart(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -68,7 +69,7 @@ def StrikeAtTheHeart(self, targets, board, blankBoard, scaleWidth, scaleHeight, 
 
 
 # appends this newly made card not in a class format so many can be made
-cards['strike at the heart'] = [StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'high cost, medium damage, status effect, single target', 3, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['strike at the heart'] = [StrikeAtTheHeart, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'strike at the heart', 'High cost, medium damage, status effect, single target', 3, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def SneakAttack(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -150,7 +151,7 @@ def Mechanise(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, p
 
 
 # appends this newly made card not in a class format so many can be made
-cards['mechanise'] = [Mechanise, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'mechanise', 'Apply block equal to your health at a random attacked square and lose 1 max HP at the end of each turn', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['mechanise'] = [Mechanise, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'mechanise', 'Large Ichor cost, massive armour, legendary spell', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def VirulentPlague(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -190,7 +191,7 @@ def FinalStand(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, 
 
 
 # appends this newly made card not in a class format so many can be made
-cards['final stand'] = [FinalStand, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'final stand', 'Apply a total 50 block to all slot Opportunity, it prevents lethal', 1, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['final stand'] = [FinalStand, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'final stand', 'small ichor cost, massive armour', 1, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def DemonicSeal(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -244,7 +245,7 @@ def TheWorldTree(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn
 
 
 # appends this newly made card not in a class format so many can be made
-cards['the world tree'] = [TheWorldTree, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'the world tree', 'Gain 15 block, then remove all block and heal your hero for that much', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['the world tree'] = [TheWorldTree, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'the world tree', 'Large Cost, Massive Heal', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def CurrencyExchange(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -261,6 +262,7 @@ def CurrencyExchange(self, targets, board, blankBoard, scaleWidth, scaleHeight, 
         for x in range(2):
             card = Cards[randint(0, len(Cards) - 1)]
             board[card[0]][card[1]]['card'] = cards[player.allCards[randint(0, len(cards) - 1)]]
+        player.discard = True
 
         # returns saying that it was played
         return True, targets, board, player
@@ -277,6 +279,7 @@ def LeBureauDeChange(self, targets, board, blankBoard, scaleWidth, scaleHeight, 
     if board[self.x][self.y]['playable']:
         for x in range(3):
             board, player.stackCards = drawCard(board, player.stackCards)
+        player.discard = True
 
         # returns saying that it was played
         return True, targets, board, player
@@ -304,6 +307,7 @@ def Bank(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player
                     PLAYABLE.append((counter1, counter2))
                 counter2 += 1
             counter1 += 1
+        player.discard = True
         player.stackCards = shuffle(player.stackCards)
         card = PLAYABLE[randint(0, len(PLAYABLE) - 1)]
         board[card[0]][card[1]]['card'] = player.stackCards[0]
@@ -350,6 +354,7 @@ def Gamble(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, play
                     attacked.append((counter1, counter2))
                 counter2 += 1
             counter1 += 1
+        player.discard = True
 
         # goes through and adds 5 cards to spots that aren't active
         total = 0
@@ -395,7 +400,7 @@ def ShieldSlam(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, 
 
 
 # appends this newly made card not in a class format so many can be made
-cards['shield slam'] = [ShieldSlam, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield slam', 'A guy just slamming a flat shield on a mushroom', 1, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['shield slam'] = [ShieldSlam, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield slam', 'low cost, deal damage equal to armour', 1, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def ShieldStorm(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -419,7 +424,7 @@ def ShieldStorm(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn,
 
 
 # appends this newly made card not in a class format so many can be made
-cards['shield storm'] = [ShieldStorm, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield storm', 'Deal damage to all enemies equal to your total armour and destroy it', 2, False, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
+cards['shield storm'] = [ShieldStorm, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield storm', 'Medium cost, deal damage to all enemies with your armour', 2, False, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
 
 
 def TimeSwipe(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -434,7 +439,7 @@ def TimeSwipe(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, p
 
 
 # appends this newly made card not in a class format so many can be made
-cards['time swipe'] = [TimeSwipe, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'time swipe', 'Gain 2 energy, lose 3 max energy for the next turn', 0, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['time swipe'] = [TimeSwipe, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'time swipe', 'Low cost, gain energy with downside', 0, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def Taunt(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -459,7 +464,7 @@ def Taunt(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, playe
 
 
 # appends this newly made card not in a class format so many can be made
-cards['taunt'] = [Taunt, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'taunt', 'Gain 30 armour, all enemies target that square', 1, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['taunt'] = [Taunt, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'taunt', 'Low cost gain armour, all attacks target that square', 1, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def ShieldBash(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -475,11 +480,31 @@ def ShieldBash(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, 
 
 
 # appends this newly made card not in a class format so many can be made
-cards['shield bash'] = [ShieldBash, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield bash', 'Deal 10 damage, Gain armour equal to the damage dealt', 2, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['shield bash'] = [ShieldBash, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'shield bash', 'Medium cost, deal a bunch of damage, gain a bunch of armour', 2, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def ClumsySlash(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
-    pass
+    # checks if the card is on a playable tile
+    if board[self.x][self.y]['playable'] or player.discard:
+        targets['enemy'][0].hit(3, player)
+        Cards = []
+        for row in board:
+            for card in row:
+                if card['card']:
+                    Cards.append((card['card'].x, card['card'].y))
+
+        card = Cards[randint(0, len(Cards) - 1)]
+        player.stackCards.append(board[card[0]][card[1]]['card'])
+        board[card[0]][card[1]]['card'] = False
+        player.discard = True
+        # returns saying that it was played
+        return True, targets, board, player
+    # returns saying that it wasn't able to be played
+    return False, targets, board, player
+
+
+# appends this newly made card not in a class format so many can be made
+cards['clumsy slash'] = [ClumsySlash, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'clumsy slash', 'Part of the money money bucket', 0, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def WildLeap(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -513,21 +538,29 @@ def WildLeap(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, pl
 
 
 # appends this newly made card not in a class format so many can be made
-cards['wild leap'] = [WildLeap, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'wild leap', 'Triple your dodge. Lose 40 total dodge.', 2, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['wild leap'] = [WildLeap, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'wild leap', 'Part of the dodge bucket', 2, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def MicroDodge(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
-    # checks if the card is on a playable tile and the target is on an attacked tile
+    # checks if the target is on an attacked tile
     total = 0
     for id in targets['spot'][0][2]['attacked']:
         total += targets['spot'][0][2]['attacked'][str(id)]
-    if board[self.x][self.y]['playable'] and total > 0:
-        pass
+    if total > 0:
+        board[targets['spot'][0]][targets['spot'][1]]['block'] += 3
+        # returns saying that it was played
+        return True, targets, board, player
+    # returns saying that it wasn't able to be played
+    return False, targets, board, player
+
+
+# appends this newly made card not in a class format so many can be made
+cards['micro dodge'] = [MicroDodge, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'micro dodge', 'Part of the 0-cost bucket and the block bucket', 0, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 1}]
 
 
 def ThrowingDagger(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile
-    if board[self.x][self.y]['playable']:
+    if not board[self.x][self.y]['playable']:
         for enemy in targets['enemies']:
             enemy.hit(3, player, False)
         # returns saying that it was played
@@ -537,10 +570,10 @@ def ThrowingDagger(self, targets, board, blankBoard, scaleWidth, scaleHeight, tu
 
 
 # appends this newly made card not in a class format so many can be made
-cards['throwing dagger'] = [ThrowingDagger, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'throwing dagger', 'deal 3 damage to all enemies', 0, False, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
+cards['throwing dagger'] = [ThrowingDagger, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'throwing dagger', 'Part of the 0-cost bucket and the multi strike damage', 0, False, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
 
 
-def StormOfShields(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+def DefenciveStance(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile and the target is on an attacked tile
     if board[self.x][self.y]['playable']:
         player.relics.append(Relic(relics['storm of shields relic'][0], relics['storm of shields relic'][1], relics['storm of shields relic'][2], relics['storm of shields relic'][3], relics['storm of shields relic'][4], relics['storm of shields relic'][5]))
@@ -551,7 +584,7 @@ def StormOfShields(self, targets, board, blankBoard, scaleWidth, scaleHeight, tu
 
 
 # appends this newly made card not in a class format so many can be made
-cards['storm of shields'] = [StormOfShields, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'storm of the shields', 'Only lose 10 block at the end of your turn.', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['defencive stance'] = [DefenciveStance, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'defencive stance', 'Part of the block bucket', 3, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def EnhancedDNA(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
@@ -578,17 +611,12 @@ def EnhancedDNA(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn,
 
 
 # appends this newly made card not in a class format so many can be made
-cards['enhanced dna'] = [EnhancedDNA, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'enhanced dna', 'Gain 1 block for every grid space. If no enemy is attacking, increase this cards block by 1 permanently.', 1, True, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
+cards['enhanced dna'] = [EnhancedDNA, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'enhanced dna', 'Part of the block bucket', 1, False, {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}]
 
 
 def EvolvingParasite(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
     # checks if the card is on a playable tile and the target is on an attacked tile
     if board[self.x][self.y]['playable']:
-        try:
-            self.attack
-        except AttributeError:
-            self.attack = 3
-
         increaseDamage = False
         for enemy in targets['enemies']:
             enemy.hit(self.attack, player, True)
@@ -596,11 +624,28 @@ def EvolvingParasite(self, targets, board, blankBoard, scaleWidth, scaleHeight, 
                 increaseDamage = True
 
         if increaseDamage:
-            self.attack += 2
+            player.evolvingParasite += 2
         # returns saying that it was played
         return True, targets, board, player
     # returns saying that it wasn't able to be played
     return False, targets, board, player
 
 
-cards['evolving parasite'] = [EvolvingParasite, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'evolving parasite', 'Deal 3 damage to all enemies. Piercing. If this kills an enemy increase its damage by 2 permanently', 1, True, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
+# appends this newly made card not in a class format so many can be made
+cards['evolving parasite'] = [EvolvingParasite, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'evolving parasite', 'an archetype of its own and part of the multistrike bucket', 1, True, {'enemy': 0, 'card': 0, 'enemies': 1, 'spot': 0}]
+
+
+def Slash(self, targets, board, blankBoard, scaleWidth, scaleHeight, turn, player):
+    # checks if the card is on a playable tile and the target is on an attacked tile
+    try:
+        self.damage
+    except AttributeError:
+        self.damage = 7
+    targets['enemy'][0].hit(self.damage, player)
+    self.damage += 5
+    # returns saying that it was played
+    return True, targets, board, player
+
+
+# appends this newly made card not in a class format so many can be made
+cards['slash'] = [Slash, pygame.image.load(str(cardRoot / 'StrikeAtTheHeart.png')), 'slash', 'An archetype of its own', 1, False, {'enemy': 1, 'card': 0, 'enemies': 0, 'spot': 0}]

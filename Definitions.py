@@ -25,22 +25,25 @@ def drawCard(board, stackCards):
 
     # makes a loop
     counter = 0
-    while True:
-        counter += 1
-        # creates a failsafe in case every tile is filled
-        if counter > 1000:
-            break
+    try:
+        while True:
+            counter += 1
+            # creates a failsafe in case every tile is filled
+            if counter > 1000:
+                break
 
-        # makes a random co-ordinate spot
-        cords = (randint(0, 4), randint(0, 4))
+            # makes a random co-ordinate spot
+            cords = (randint(0, 4), randint(0, 4))
 
-        # checks if the spot is empty
-        if not board[cords[0]][cords[1]]['card']:
-            # places the card and resize it to that spot
-            board[cords[0]][cords[1]]['card'] = stackCards[0]
-            board[cords[0]][cords[1]]['card'].x, board[cords[0]][cords[1]]['card'].y, board[cords[0]][cords[1]]['card'].screenX, board[cords[0]][cords[1]]['card'].screenY = cords[0], cords[1], cords[0] * cardGapWIDTH + cardSpaceWIDTH, cords[1] * cardGapHEIGHT + cardSpaceHEIGHT
-            stackCards.pop(0)
-            break
+            # checks if the spot is empty
+            if not board[cords[0]][cords[1]]['card']:
+                # places the card and resize it to that spot
+                board[cords[0]][cords[1]]['card'] = stackCards[0]
+                board[cords[0]][cords[1]]['card'].x, board[cords[0]][cords[1]]['card'].y, board[cords[0]][cords[1]]['card'].screenX, board[cords[0]][cords[1]]['card'].screenY = cords[0], cords[1], cords[0] * cardGapWIDTH + cardSpaceWIDTH, cords[1] * cardGapHEIGHT + cardSpaceHEIGHT
+                stackCards.pop(0)
+                break
+    except IndexError:
+        pass
     return board, stackCards
 
 
