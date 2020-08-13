@@ -35,7 +35,9 @@ class Player:
         self.healingMultiplier = 1
         self.poisonMultiplier = 1
         self.evolvingParasite = 3
-        self.discard = False
+        self.discard = 0
+        self.attacked = 0
+        self.takenDamage = 0
 
     def heal(self, health):
         self.hp += int(health * self.healingMultiplier)
@@ -43,7 +45,8 @@ class Player:
     def hit(self, damage):
         if self.fragile > 0:
             damage *= 1 + FRAGILE
-        return int(damage)
+        self.hp -= int(damage)
+        self.takenDamage += 1
 
 
 class Card:
@@ -209,6 +212,7 @@ class Enemy:
             else:
                 self.block -= damage
                 damage = 0
+        aggressor.attacked += 1
         self.hp -= damage
 
     def hitting(self, damage, target):
@@ -217,6 +221,7 @@ class Enemy:
         if target.crippled > 0:
             damage *= 1 - CRIPPLED
         target.hp -= damage
+        target.takenDamage += 1
         return target
 
 

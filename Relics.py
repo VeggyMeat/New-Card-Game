@@ -107,7 +107,6 @@ def WitchDoctorsHerbs(self, board, player, enemies, tag, relics):
         if enemy.poison > 0:
             enemy.hit(enemy.poison, player)
             enemy.poison -= int(enemy.poison / 2)
-
     return board, player, enemies
 
 
@@ -132,7 +131,6 @@ def DefenciveStanceRelic(self, board, player, enemies, tag, relics):
         random[2] -= 1
         if board[random[0]][random[1]]['block'] == 0:
             blockCards.remove(random)
-
     return board, player, enemies
 
 
@@ -147,3 +145,64 @@ def BurningHeart(self, board, player, enemies, tag, relics):
 
 
 relics['burning heart'] = [BurningHeart, Blank, ['startTurn'], True, 'burning heart', 'Take 1 damage at the beginning of every turn. Draw 1 extra card per turn']
+
+
+def BraceRelic(self, board, player, enemies, tag, relics):
+    board[randint(0, 4)][randint(0, 4)]['block'] += 5
+    return board, player, enemies
+
+
+relics['brace relic'] = [BraceRelic, Blank, ['takeDamage'], False, 'brace relic', 'Every time you take hp damage apply block 5 to a random grid space.']
+
+
+def EnragedRelic(self, board, player, enemies, tag, relics):
+    player.nextMana += 1
+    return board, player, enemies
+
+
+relics['enraged relic'] = [EnragedRelic, Blank, ['enemyDamage'], False, 'enraged relic', 'Gain 1 energy every time you take unblocked attack damage']
+
+
+def CrookedStealthCrossbow(self, board, player, enemies, tag, relics):
+    targets = {'enemies': enemies}
+    none = False
+    none, targets, board, player = player.fires['bolt'][0](self, targets, board, none, none, none, none, player)
+    return board, player, enemies
+
+
+relics['crooked stealth crossbow'] = [CrookedStealthCrossbow, Blank, ['cardDiscarded'], True, 'crooked stealth crossbow', 'Fire one bolt every time a card is discarded']
+
+
+def DyingEmbers(self, board, player, enemies, tag, relics):
+    player.hp += 1
+    return board, player, enemies
+
+
+relics['dying embers'] = [DyingEmbers, Blank, ['takeDamage'], True, 'dying embers', 'Lose one less health every time you would take hp damage']
+
+
+def InnerPeace(self, board, player, enemies, tag, relics):
+    total = 0
+    for card in player.deck:
+        if card[-7:-1] + card[-1] == 'passive':
+            total += 1
+    total = int(total / 3)
+    for x in range(total):
+        board, player.stackCards = drawCard(board, player.stackCards)
+    return board, player, enemies
+
+
+relics['inner peace'] = [InnerPeace, Blank, ['startEncounter'], True, 'inner peace', 'Draw an extra card on your first turn of combat for the first turn of combat for every 3 power cards in your deck']
+
+
+def Recycle(self, board, player, enemies, tag, relics):
+    board, player.stackCards = drawCard(board, player.stackCards)
+    return board, player, enemies
+
+
+def RecycleStart(self, board, player, enemies):
+    player.relics.pop(randint(0, len(player.relics) - 1))
+    return board, player, enemies
+
+
+relics['recycle'] = [Recycle, RecycleStart, ['startTurn'], True, 'recycle', 'Draw an extra card every turn. Lose a random relic.']

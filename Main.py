@@ -54,6 +54,7 @@ CLICKED = False
 COUNT = {'enemy': 0, 'card': 0, 'enemies': 0, 'spot': 0}
 TARGET = {'enemy': [], 'card': [], 'enemies': [], 'spot': []}
 ID = False
+player.fires = [cards['bolt']]
 
 # loading some images
 SPORES = pygame.transform.scale(pygame.image.load(str(symbolRoot / 'Spore.png')), (10, 10))
@@ -93,7 +94,7 @@ for x in range(4):
             break
 
 for id in cards:
-    player.allCards.append('enhanced dna')
+    player.allCards.append('morgoth')
 
 # sets up some random cards
 for x in range(60):
@@ -104,7 +105,6 @@ for x in range(60):
 
 # sets up some variables i haven't decide to put yet
 random = (False, ())
-previousHealth = player.hp
 takenDamage = False
 previousPlayerRelics = player.relics
 
@@ -342,7 +342,6 @@ def clicked():
     location = pygame.mouse.get_pos()
 
     # sets up a loop and goes through each card
-
     for row in board:
         for card in row:
             # checks if the spot is filled by a card
@@ -360,6 +359,7 @@ def clicked():
                                     COUNT['enemies'] += 1
                             elif COUNT['card'] != CLICKED['card'].select:
                                 TARGET['card'].append(card)
+                                time.sleep(.2)
                         else:
                             # gets ready to draw the card bigger
                             random = ('card', (card['card'].x, card['card'].y))
@@ -375,6 +375,7 @@ def clicked():
                         if CLICKED['card'].select['spot'] != COUNT['spot']:
                             TARGET['spot'].append([counter1, counter2])
                             COUNT['spot'] += 1
+                            time.sleep(.2)
                 counter2 += 1
             counter1 += 1
 
@@ -433,6 +434,7 @@ def clicked():
                         if CLICKED['card'].select['enemy'] != COUNT['enemy']:
                             TARGET['enemy'].append(currentEnemy)
                             COUNT['enemy'] += 1
+                            time.sleep(.2)
         counter += 1
 
     # checks if any of the buttons have been pressed and if so calls its definition
@@ -442,7 +444,7 @@ def clicked():
                 if button.resizedY < location[1] < button.resizedY + button.resizedHeight:
                     button.use()
                     # tries to stop someone accidentally selecting a button immediately after because of holding down the mouse
-                    time.sleep(.15)
+                    time.sleep(.2)
 
 
 # buttons
@@ -457,15 +459,30 @@ while Open:
     clock.tick(60)
     globalCounter += 1
 
-    # calls any relics that have the tag takeDamage
-    if previousHealth > player.hp:
-        previousHealth = player.hp
+    # calls any relics that have the tag enemyDamage
+    for x in range(player.attacked):
         takenDamage = True
         for relic in player.relics:
-            call = False
+            for item in relic.activated:
+                if item == 'enemyDamage':
+                    board, player, enemies = relic.definition(board, player, enemies, 'enemyDamage', relics)
+    player.attacked = 0
+
+    # calls any relics that have the tag takeDamage
+    for x in range(player.takenDamage):
+        for relic in player.relics:
             for item in relic.activated:
                 if item == 'takeDamage':
                     board, player, enemies = relic.definition(board, player, enemies, 'takeDamage', relics)
+    player.takenDamage = 0
+
+    # calls any relics that have the tag cardDiscarded
+    for x in range(player.discard):
+        for relic in player.relics:
+            for item in relic.activated:
+                if item == 'cardDiscarded':
+                    board, player, enemies = relic.definition(board, player, enemies, 'cardDiscarded', relics)
+    player.discard = 0
 
     # gets the location of the mouse and whether the mouse has been pressed
     for event in pygame.event.get():
@@ -482,7 +499,6 @@ while Open:
     for currentEnemy in CurrentEnemies:
         if currentEnemy.hp <= 0:
             for relic in player.relics:
-                call = False
                 for item in relic.activated:
                     if item == 'enemyDied':
                         board, player, enemies = relic.definition(board, player, enemies, 'enemyDied', relics)
