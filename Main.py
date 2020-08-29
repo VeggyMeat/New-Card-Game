@@ -14,6 +14,7 @@ turn = 0
 pygame.init()
 pygame.font.init()
 myFont = pygame.font.SysFont('sitkasmallsitkatextbolditalicsitkasubheadingbolditalicsitkaheadingbolditalicsitkadisplaybolditalicsitkabannerbolditalic', 20, False, False)
+myFont2 = pygame.font.SysFont('sitkasmallsitkatextbolditalicsitkasubheadingbolditalicsitkaheadingbolditalicsitkadisplaybolditalicsitkabannerbolditalic', 13, False, False)
 
 # sets up pygame's clock system
 clock = pygame.time.Clock()
@@ -94,12 +95,12 @@ for x in range(4):
             break
 
 for id in cards:
-    player.allCards.append('morgoth')
+    player.allCards.append(id)
 
 # sets up some random cards
 for x in range(60):
     number = player.allCards[randint(0, len(player.allCards) - 1)]
-    placeHolder = Card(-1, -1, 0, 0, cards[number][0], cards[number][1], cards[number][2], cards[number][3], cards[number][4], cards[number][5], cards[number][6])
+    placeHolder = Card(-1, -1, 0, 0, cards[number][0], cards[number][1], cards[number][2], cards[number][3], cards[number][4], cards[number][5], cards[number][6], cards[number][7])
     placeHolder.resize(scaleWidth, scaleHeight)
     player.stackCards.append(placeHolder)
 
@@ -138,21 +139,21 @@ def Draw(random=(True, ())):
 
             if total > 0:
                 textSurface = myFont.render(str(total), False, RED)
-                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 20) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 20) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 5) * scaleHeight)))
 
             if card['block'] > 0:
                 textSurface = myFont.render(str(card['block']), False, TURQUOISE)
-                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 50) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH + cardWIDTH - 50) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 5) * scaleHeight)))
 
             # draws the spores for each card
             if card['spores'] > 0:
-                screen.blit(SPORES, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth + 20), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 7) * scaleHeight)))
+                screen.blit(SPORES, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth + 12), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 11) * scaleHeight)))
                 textSurface = myFont.render(str(card['spores']), False, GREEN)
-                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT) * scaleHeight)))
+                screen.blit(textSurface, (int((cardGapWIDTH * counter1 + cardSpaceWIDTH) * scaleWidth), int((cardGapHEIGHT * counter2 + cardSpaceHEIGHT + cardHEIGHT + 5) * scaleHeight)))
 
             # draws the card on the screen if its not blank
             if card['card']:
-                card['card'].draw(screen)
+                card['card'].draw(screen, myFont2)
             counter2 += 1
         counter1 += 1
 
@@ -265,6 +266,9 @@ def nextTurn():
     for relic in player.relics:
         if relic.name == 'witch doctors herbs':
             do = False
+
+    player.maxHP -= player.decay
+
     if do:
         if player.poison > 0:
             player.hit(round(player.poison / 2))
@@ -272,7 +276,7 @@ def nextTurn():
 
         for enemy in CurrentEnemies:
             if enemy.poison > 0:
-                enemy.hit(round(enemy.poison / 2), player)
+                enemy.hit(round(enemy.poison / 2), player, True)
                 enemy.poison -= 1
 
     # attacks for each enemy
@@ -287,6 +291,7 @@ def nextTurn():
 
     # increases turn counter
     turn += 1
+    player.turn = turn
 
     # starts a loop taking any damage directed at the board and checks whether theres a card and
     counter = 0
@@ -318,7 +323,7 @@ def nextTurn():
 
     # draws cards out of the deck and places them on the board
     for x in range(10):
-        board, player.stackCards = drawCard(board, player.stackCards)
+        board, player.stackCards = drawCard(board, player.stackCards, enemies, blankBoard, scaleWidth, scaleHeight, turn, player)
 
     # gives each enemy his turn showing where he will attack
     for currentEnemy in CurrentEnemies:
@@ -450,14 +455,26 @@ def clicked():
 # buttons
 nextTurnButton = Button(WIDTH-100, HEIGHT-20, 100, 20, nextTurn, RED)
 buttons = [nextTurnButton]
+player.blankBoard = blankBoard
+previousBlock = 0
+for row in board:
+    for card in row:
+        previousBlock += card['block']
 
 while Open:
-    if previousPlayerRelics != player.relics:
-        for x in range(len(previousPlayerRelics), len(player.relics)):
-            board, player, enemies = player.relics[x].start(board, player, enemies)
     # makes sure the game is running no faster than 60 fps
     clock.tick(60)
     globalCounter += 1
+
+    # just adds scale to player
+    player.scaleWidth = scaleWidth
+    player.scaleHeight = scaleHeight
+    player.turn = turn
+
+    # calls the relic's start ability if added
+    if previousPlayerRelics != player.relics:
+        for x in range(len(previousPlayerRelics), len(player.relics)):
+            board, player, enemies = player.relics[x].start(board, player, enemies)
 
     # calls any relics that have the tag enemyDamage
     for x in range(player.attacked):

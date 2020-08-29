@@ -19,7 +19,7 @@ def shuffle(deck):
 
 
 # draws a card from the deck places it randomly on the board and removes it from the stack
-def drawCard(board, stackCards):
+def drawCard(board, stackCards, targets, blankBoard, scaleWidth, scaleHeight, turn, player):
     # makes a loop
     empty = []
     counter1 = 0
@@ -32,8 +32,10 @@ def drawCard(board, stackCards):
         counter1 += 1
     if len(empty) != 0:
         something = empty[randint(0, len(empty) - 1)]
-        board[something[0]][something[1]] = stackCards[0]
+        stackCards[0].x, stackCards[0].y, stackCards[0].screenX, stackCards[0].screenY = something[0], something[1], cardGapWIDTH * something[0] + cardSpaceWIDTH, cardGapHEIGHT * something[1] + cardSpaceHEIGHT
+        board[something[0]][something[1]]['card'] = stackCards[0]
         stackCards.pop(0)
+        targets, board, player = board[something[0]][something[1]]['card'].start(board[something[0]][something[1]]['card'], targets, board, blankBoard, scaleWidth, scaleHeight, turn, player)
 
     # shuffles the deck
     stackCards = shuffle(stackCards)

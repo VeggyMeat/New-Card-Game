@@ -47,7 +47,7 @@ relics['demonfire'] = [Demonfire, Blank, ['endTurn'], False, 'demon fire', 'redu
 def RitualStone(self, board, player, enemies, tag, relics):
     for x in range(5):
         card = cards['demonic seal']
-        player.stackCards.append(Card(0, 0, 0, 0, card[0], card[1], card[2], card[3], card[4], card[5], card[6]))
+        player.stackCards.append(Card(0, 0, 0, 0, card[0], card[1], card[2], card[3], card[4], card[5], card[6], card[7]))
     player.stackCards = shuffle(player.stackCards)
     return board, player, enemies
 
@@ -83,7 +83,7 @@ relics['serrated shield'] = [SerratedShield, Blank, ['endTurn'], True, 'serrated
 
 def SupplyBag(self, board, player, enemies, tag, relics):
     for x in range(2):
-        board, player.stackCards = drawCard(board, player.stackCards)
+        board, player.stackCards = drawCard(self, enemies, board, player.blankBoard, player.scaleWidth, player.scaleHeight, player.turn, player)
     return board, player, enemies
 
 
@@ -105,7 +105,7 @@ def WitchDoctorsHerbs(self, board, player, enemies, tag, relics):
 
     for enemy in enemies:
         if enemy.poison > 0:
-            enemy.hit(enemy.poison, player)
+            enemy.hit(enemy.poison, player, True)
             enemy.poison -= int(enemy.poison / 2)
     return board, player, enemies
 
@@ -138,7 +138,7 @@ relics['defencive stance relic'] = [DefenciveStanceRelic, Blank, ['endTurn'], Fa
 
 
 def BurningHeart(self, board, player, enemies, tag, relics):
-    board, player.stackCards = drawCard(board, player.stackCards)
+    board, player.stackCards = drawCard(self, enemies, board, player.blankBoard, player.scaleWidth, player.scaleHeight, player.turn, player)
     player.hp -= 1
 
     return board, player, enemies
@@ -188,7 +188,7 @@ def InnerPeace(self, board, player, enemies, tag, relics):
             total += 1
     total = int(total / 3)
     for x in range(total):
-        board, player.stackCards = drawCard(board, player.stackCards)
+        board, player.stackCards = drawCard(self, enemies, board, player.blankBoard, player.scaleWidth, player.scaleHeight, player.turn, player)
     return board, player, enemies
 
 
@@ -196,7 +196,7 @@ relics['inner peace'] = [InnerPeace, Blank, ['startEncounter'], True, 'inner pea
 
 
 def Recycle(self, board, player, enemies, tag, relics):
-    board, player.stackCards = drawCard(board, player.stackCards)
+    board, player.stackCards = drawCard(self, enemies, board, player.blankBoard, player.scaleWidth, player.scaleHeight, player.turn, player)
     return board, player, enemies
 
 
@@ -206,3 +206,64 @@ def RecycleStart(self, board, player, enemies):
 
 
 relics['recycle'] = [Recycle, RecycleStart, ['startTurn'], True, 'recycle', 'Draw an extra card every turn. Lose a random relic.']
+
+
+def DejaVuRelic(self, board, player, enemies, tag, relics):
+    board[self.spot[0]][self.spot[1]]['playable'] = False
+    player.relics.pop(player.relics.index(self))
+    return board, player, enemies
+
+
+relics['deja vu relic'] = [DejaVuRelic, Blank, ['endTurn'], False, 'deja vu relic', 'basically pop']
+
+
+def PrideRelic(self, board, player, enemies, tag, relics):
+    if tag == 'enemyDamage':
+        try:
+            self.enemies
+        except AttributeError:
+            self.enemies = enemies
+        counter = 0
+        for enemy in enemies:
+            if enemy.hp != self.enemies[counter].hp:
+                enemy.hp -= self.enemies[counter].hp - enemy.hp
+            counter += 1
+        self.enemies = enemies
+        return board, player, enemies
+    else:
+        player.relics.pop(player.relics.index(self))
+    return board, player, enemies
+
+
+relics['pride relic'] = [PrideRelic, Blank, ['endTurn', 'enemyDamage'], False, 'pride relic', 'double damage this turn']
+
+
+def DownfallRelic(self, board, player, enemies, tag, relics):
+    for row in board:
+        for card in row:
+            card['block'] = 0
+            player.relics.pop(player.relics.index(self))
+    return board, player, enemies
+
+
+relics['downfall relic'] = [DownfallRelic, Blank, ['endTurn'], False, 'downfall relic', 'remove all block and itself at the end of the turn']
+
+
+def VampiricBiteRelic(self, board, player, enemies, tag, relics):
+    if tag == 'enemyDamage':
+        try:
+            self.enemies
+        except AttributeError:
+            self.enemies = enemies
+        counter = 0
+        for enemy in enemies:
+            if enemy.hp != self.enemies[counter].hp:
+                self.hp += self.enemies[counter].hp - enemy.hp
+            counter += 1
+        self.enemies = enemies
+    else:
+        player.decay += 1
+    return board, player, enemies
+
+
+relics['vampiric bite relic'] = [VampiricBiteRelic, Blank, ['enemyDamage', 'startTurn'], False, 'vampiric bite relic', 'add one decay a turn, increase hp for damage dealt']

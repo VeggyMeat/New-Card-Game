@@ -38,6 +38,7 @@ class Player:
         self.discard = 0
         self.attacked = 0
         self.takenDamage = 0
+        self.decay = 0
 
     def heal(self, health):
         self.hp += int(health * self.healingMultiplier)
@@ -50,7 +51,7 @@ class Player:
 
 
 class Card:
-    def __init__(self, x, y, screenX, screenY, used, image, name, description, ichorCost, exhaust, select):
+    def __init__(self, x, y, screenX, screenY, used, start, image, name, description, ichorCost, exhaust, select):
         # integers between 0 and 4
         self.x = x
         self.y = y
@@ -77,6 +78,7 @@ class Card:
 
         # the definition used when the card is used
         self.used = used
+        self.start = start
 
         # the original image for the card and the size of the image
         self.image = image
@@ -89,9 +91,12 @@ class Card:
         self.exhaust = exhaust
         self.select = select
 
-    def draw(self, screen):
-        # draws the resized image on screen
-        screen.blit(self.resizedImage, (self.resizedX, self.resizedY))
+    def draw(self, screen, myFont):
+        #draws the resized image on screen
+        #screen.blit(self.resizedImage, (self.resizedX, self.resizedY))
+        pygame.draw.rect(screen, (0, 0, 0), (self.resizedX, self.resizedY, self.resizedImageSize[0], self.resizedImageSize[1]))
+        textSurface = myFont.render(self.name, False, (255, 255, 255))
+        screen.blit(textSurface, (self.resizedX + self.resizedImageSize[0] * .1, self.resizedY + self.resizedImageSize[1] * .1))
 
     def resize(self, scaleWidth, scaleHeight):
         # resizes the image and location of image
@@ -103,7 +108,7 @@ class Card:
     def use(self, board, blankBoard, targets, scaleWidth, scaleHeight, turn, player, enemies):
         # checks whether the player has enough ichor to play the card
         if player.ichorLeft >= self.ichorCost:
-            # returns different things depending on whether the card exhausted, got played, or didn't after using the definiton of the card
+            # returns different things depending on whether the card exhausted, got played, or didn't after using the definition of the card
             used, targets, board, player = self.used(self, targets=targets, board=board, blankBoard=blankBoard, scaleWidth=scaleWidth, scaleHeight=scaleHeight, turn=turn, player=player)
 
             # if the card was used subtracts ichor
